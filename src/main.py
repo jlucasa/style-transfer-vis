@@ -18,6 +18,13 @@ DTYPE = torch.FloatTensor
 CNN = torchvision.models.squeezenet1_1(pretrained=True).features
 CNN.type(DTYPE)
 
+WEIGHTS_MAP = {
+    1: 300000,
+    4: 1000,
+    6: 15,
+    7: 3
+}
+
 def preprocess_image(img, size=512):
     transform = T.Compose([
         T.Resize(size),
@@ -135,101 +142,108 @@ def style_transfer(
     init_random=False
 ):
     import time
-    start_time = time.time()
 
-    content_img_as_tensor = preprocess_image(content_img, size=content_size).type(DTYPE)
-    feats = extract_features(content_img_as_tensor)
-    content_target = feats[content_layer].clone()
+    try:
+        start_time = time.time()
 
-    style_img_as_tensor = preprocess_image(style_img, size=style_size).type(DTYPE)
-    feats = extract_features(style_img_as_tensor)
-    style_targets = []
+        content_img_as_tensor = preprocess_image(PIL.Image.open(content_img), size=content_size).type(DTYPE)
+        feats = extract_features(content_img_as_tensor)
+        content_target = feats[content_layer].clone()
 
-    for idx in style_layers:
-        style_targets.append(gram_matrix(feats[idx].clone()))
-    
-    # Initialize output image to content image or noise
-    if init_random:
-        img = torch.Tensor(content_img_as_tensor.size()).uniform_(0, 1).type(DTYPE)
-    else:
-        img = content_img_as_tensor.clone().type(DTYPE)
-    
-    # We do want the gradient computed on our image!
-    img.requires_grad_()
+        style_img_as_tensor = preprocess_image(PIL.Image.open(style_img), size=style_size).type(DTYPE)
+        feats = extract_features(style_img_as_tensor)
+        style_targets = []
 
-    # Set up optimization hyperparameters
-    initial_lr = 3.0
-    decayed_lr = 0.1
-    decay_lr_at = 180
-
-    # Note that we are optimizing the pixel values of the image by passing
-    # in the img Torch tensor, whose requires_grad flag is set to True
-    optimizer = torch.optim.Adam([img], lr=initial_lr)
-
-    f, axarr = plt.subplots(1, 2)
-    axarr[0].axis('off')
-    axarr[1].axis('off')
-    axarr[0].set_title('Content Source Img.')
-    axarr[1].set_title('Style Source Img.')
-    axarr[0].imshow(deprocess_image(content_img_as_tensor.cpu()))
-    axarr[1].imshow(deprocess_image(style_img_as_tensor.cpu()))
-    st.pyplot(f)
-
-    check_time = time.time()
-
-    for t in range(num_epochs):
-        print('epoch: ', t)
-        check_time = time.time()
-        st.progress(t)
-
-        if t < 190:
-            img.data.clamp_(-1.5, 1.5)
-        optimizer.zero_grad()
-
-        feats = extract_features(img)
+        for idx in style_layers:
+            style_targets.append(gram_matrix(feats[idx].clone()))
         
-        content_loss = content_loss(content_weight, feats[content_layer], content_target)
-        style_loss = style_loss(feats, style_layers, style_targets, style_weights)
-        tv_loss = tv_loss(img, tv_weight)
-        loss = content_loss + style_loss + tv_loss
-
-        check_time = time.time()
-
-        loss.backward()
-
-        if t == decay_lr_at:
-            optimizer = torch.optim.Adam([img], lr=decayed_lr)
+        # Initialize output image to content image or noise
+        if init_random:
+            img = torch.Tensor(content_img_as_tensor.size()).uniform_(0, 1).type(DTYPE)
+        else:
+            img = content_img_as_tensor.clone().type(DTYPE)
         
-        optimizer.step()
+        # We do want the gradient computed on our image!
+        img.requires_grad_()
+
+        # Set up optimization hyperparameters
+        initial_lr = 3.0
+        decayed_lr = 0.1
+        decay_lr_at = 180
+
+        # Note that we are optimizing the pixel values of the image by passing
+        # in the img Torch tensor, whose requires_grad flag is set to True
+        optimizer = torch.optim.Adam([img], lr=initial_lr)
+
+        f, axarr = plt.subplots(1, 2)
+        axarr[0].axis('off')
+        axarr[1].axis('off')
+        axarr[0].set_title('Content Source Img.')
+        axarr[1].set_title('Style Source Img.')
+        axarr[0].imshow(deprocess_image(content_img_as_tensor.cpu()))
+        axarr[1].imshow(deprocess_image(style_img_as_tensor.cpu()))
+        st.pyplot(f)
+
         check_time = time.time()
 
-        if t % 20 == 0:
+        for t in range(num_epochs):
+            print('epoch: ', t)
+            check_time = time.time()
+            st.progress(t)
+
+            if t < 190:
+                img.data.clamp_(-1.5, 1.5)
+            optimizer.zero_grad()
+
+            feats = extract_features(img)
+            
+            c_loss = content_loss(content_weight, feats[content_layer], content_target)
+            s_loss = style_loss(feats, style_layers, style_targets, style_weights)
+            t_loss = tv_loss(img, tv_weight)
+            loss = c_loss + s_loss + t_loss
+
+            check_time = time.time()
+
+            loss.backward()
+
+            if t == decay_lr_at:
+                optimizer = torch.optim.Adam([img], lr=decayed_lr)
+            
+            optimizer.step()
+            check_time = time.time()
+
+            if t % 20 == 0:
+                fig, ax = plt.subplots()
+                ax.axis('off')
+                ax.imshow(deprocess_image(img.data.cpu()))
+                st.pyplot(fig)
+                st.download_button('Download In-Progress Image', deprocess_image(img.data.cpu()))
+
             fig, ax = plt.subplots()
             ax.axis('off')
             ax.imshow(deprocess_image(img.data.cpu()))
             st.pyplot(fig)
-            st.download_button('Download In-Progress Image', deprocess_image(img.data.cpu()))
+            st.download_button('Download Final Image', deprocess_image(img.data.cpu()))
 
-        fig, ax = plt.subplots()
-        ax.axis('off')
-        ax.imshow(deprocess_image(img.data.cpu()))
-        st.pyplot(fig)
-        st.download_button('Download Final Image', deprocess_image(img.data.cpu()))
-
-        print('Total elapsed time: ', time.time() - start_time)
-    
-    st.balloons()
-    st.success('Finished! Total elapsed time: ', time.time() - start_time)
+            print('Total elapsed time: ', time.time() - start_time)
+        
+        st.balloons()
+        st.success('Finished! Total elapsed time: ', time.time() - start_time)
+    except Exception as e:
+        st.error(f'Error: {e}')
 
 
 def run_style_transfer(**args):
-    if [args[key] is None for key in args]:
-        st.error(f'Missing fields: {[key for key in args if args[key] is None]}')
-        st.error('Please fill in all fields')
-        return
-    
-    style_transfer(**args)
+    for key in args:
+        if args[key] is None:
+            print(key)
+            st.error(f'Missing fields: {[key for key in args if args[key] is None]}')
+            st.error('Please fill in all fields')
+            
+            return
 
+    style_transfer(**args)
+    
 
 def main():
     """
@@ -249,23 +263,23 @@ def main():
     style_img = st.sidebar.file_uploader('Choose a Style Image', type=['jpg'], help='Only JPG images are supported')
 
     st.sidebar.markdown('## Input Image Sizes')
-    content_size = st.sidebar.number_input('Content Image Size', min_value=256, max_value=512, value=256)
-    style_size = st.sidebar.number_input('Style Image Size', min_value=256, max_value=512, value=256)
+    content_size = st.sidebar.number_input('Content Image Size', min_value=64, max_value=512, value=192)
+    style_size = st.sidebar.number_input('Style Image Size', min_value=64, max_value=512, value=192)
 
     st.sidebar.markdown('## Style Layers')
     style_layers = st.sidebar.multiselect('Style Layers (no more than 4 recommended)', available_layers, format_func=lambda x: f'Feature {x}', default=[1, 4, 6, 7])
     style_weights = [
-        st.sidebar.number_input(f'Style Layer {i} Weight', min_value=1, max_value=500000, value=100) for i in style_layers
+        st.sidebar.number_input(f'Style Layer {i} Weight', min_value=1, max_value=500000, value=WEIGHTS_MAP[i] if i in WEIGHTS_MAP else 100) for i in style_layers
     ]
 
     st.sidebar.markdown('## Content Layer')
-    content_layer = st.sidebar.selectbox('Content Layer', available_layers, format_func=lambda x: f'Feature {x}')
-    content_weight = st.sidebar.number_input('Content Layer Weight', min_value=1e-3, max_value=1.0, value=5e-2)
+    content_layer = st.sidebar.selectbox('Content Layer', available_layers, format_func=lambda x: f'Feature {x}', index=2)
+    content_weight = st.sidebar.number_input('Content Layer Weight', min_value=1e-3, max_value=1.0, value=6e-2)
 
     st.sidebar.markdown('## Optimization Hyperparameters')
-    tv_weight = st.sidebar.number_input('Total Variation Weight', min_value=1e-3, max_value=1.0, value=5e-2)
+    tv_weight = st.sidebar.number_input('Total Variation Weight', min_value=1e-3, max_value=1.0, value=2e-2)
     num_epochs = st.sidebar.number_input('Number of Epochs', min_value=1, max_value=500, value=200)
-    init_random = st.sidebar.checkbox('Random Initialization', value=True)
+    init_random = st.sidebar.checkbox('Random Initialization', value=False)
 
     args = {
         'content_img': content_img,
@@ -290,11 +304,6 @@ def main():
 
 
 if __name__ == "__main__":
-    if torch.cuda.is_available:
-        print('Torch GPU is properly configured!')
-    else:
-        print('Torch GPU is not properly configured!')
-
     for param in CNN.parameters():
         param.requires_grad_(False)
 
