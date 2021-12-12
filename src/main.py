@@ -1,4 +1,3 @@
-from pkg_resources import add_activation_listener
 import streamlit as st
 from streamlit.elements.legacy_data_frame import add_rows
 from streamlit.logger import init_tornado_logs
