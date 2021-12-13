@@ -227,7 +227,7 @@ def style_transfer(
 
             info_message.info(f'Epoch {t + 1} completed. Total elapsed time: {round(time.time() - epoch_start_time, 2)}s')
 
-        output_container.header('## Final Image')
+        output_container.markdown('## Final Image')
         output_container.image(deprocess_image(img.data.cpu()), caption='Final Image')
         
         # fig, ax = plt.subplots()
@@ -237,7 +237,7 @@ def style_transfer(
         # st.download_button('Download Final Image', deprocess_image(img.data.cpu()))
         
         st.balloons()
-        info_message.success('Finished! Total elapsed time: ', time.time() - start_time)
+        info_message.success(f'Finished! Total elapsed time: {round(time.time() - start_time, 2)}s')
     except Exception as e:
         exception_message.exception(e)
 
