@@ -138,7 +138,6 @@ def style_transfer(
     content_weight, 
     style_weights,
     tv_weight,
-    output_container,
     num_epochs=200,
     init_random=False,
     observe_intermediate_result_count=5
@@ -147,6 +146,7 @@ def style_transfer(
 
     try:
         start_time = time.time()
+        output_container = st.container()
 
         content_img_as_tensor = preprocess_image(PIL.Image.open(content_img), size=content_size).type(DTYPE)
         feats = extract_features(content_img_as_tensor)
@@ -261,7 +261,7 @@ def main():
     st.set_page_config(page_title='Style Transfer Vis', page_icon=':art:')
 
     descriptive_container = st.container()
-    output_container = st.container()
+    initial_imgs_container = st.container()
 
     descriptive_container.title('Style Transfer Neural Network Visualization')
     descriptive_container.markdown('## Jared Amen, Pranav Rajan, and Alan Weber')
@@ -274,15 +274,15 @@ def main():
     content_img = st.sidebar.file_uploader('Choose a Content Image', type=['jpg'], help='Only JPG images are supported')
     style_img = st.sidebar.file_uploader('Choose a Style Image', type=['jpg'], help='Only JPG images are supported')
 
-    col1, col2 = st.columns(2)
+    col1, col2 = initial_imgs_container.columns(2)
 
     if content_img is not None:
         with col1:
-            st.image(content_img, caption='Content Image', use_column_width=True)
+            initial_imgs_container.image(content_img, caption='Content Image', use_column_width=True)
 
     if style_img is not None:
         with col2:
-            st.image(style_img, caption='Style Image', use_column_width=True)
+            initial_imgs_container.image(style_img, caption='Style Image', use_column_width=True)
 
     st.sidebar.markdown('## Input Image Sizes')
     content_size = st.sidebar.number_input('Content Image Size', min_value=64, max_value=512, value=192)
@@ -319,7 +319,6 @@ def main():
         'num_epochs': num_epochs,
         'init_random': init_random,
         'observe_intermediate_result_count': observe_intermediate_result_count,
-        'output_container': output_container
     }
 
     st.sidebar.button(
