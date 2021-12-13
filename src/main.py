@@ -178,11 +178,12 @@ def style_transfer(
         progress_bar = st.progress(0)
         info_message = st.info('Starting style transfer...')
         exception_message = st.empty()
+        spinner_message = st.empty()
 
         for t in range(num_epochs):
             progress_bar.progress(t + 1)
-            
-            with st.spinner(f'Running Epoch {t + 1} / {num_epochs}...') as spinner:
+
+            with spinner_message.spinner(f'Running Epoch {t + 1} / {num_epochs}...'):
                 print('epoch: ', t + 1)
                 epoch_start_time = time.time()
 
@@ -190,11 +191,11 @@ def style_transfer(
                     img.data.clamp_(-1.5, 1.5)
                 optimizer.zero_grad()
 
-                spinner.text = 'Extracting features...'
+                spinner_message.spinner('Extracting features...')
 
                 feats = extract_features(img)
 
-                spinner.text = 'Computing loss...'
+                spinner_message.spinner('Computing loss...')
 
                 c_loss = content_loss(content_weight, feats[content_layer], content_target)
                 s_loss = style_loss(feats, style_layers, style_targets, style_weights)
