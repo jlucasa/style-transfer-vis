@@ -174,15 +174,6 @@ def style_transfer(
         # in the img Torch tensor, whose requires_grad flag is set to True
         optimizer = torch.optim.Adam([img], lr=initial_lr)
 
-        f, axarr = plt.subplots(1, 2)
-        axarr[0].axis('off')
-        axarr[1].axis('off')
-        axarr[0].set_title('Content Source Img.')
-        axarr[1].set_title('Style Source Img.')
-        axarr[0].imshow(deprocess_image(content_img_as_tensor.cpu()))
-        axarr[1].imshow(deprocess_image(style_img_as_tensor.cpu()))
-        st.pyplot(f)
-
         check_time = time.time()
 
         for t in range(num_epochs):
@@ -212,6 +203,7 @@ def style_transfer(
             check_time = time.time()
 
             if t % 20 == 0:
+                
                 fig, ax = plt.subplots()
                 ax.axis('off')
                 ax.imshow(deprocess_image(img.data.cpu()))
@@ -260,6 +252,16 @@ def main():
     st.sidebar.markdown('## Upload Images')
     content_img = st.sidebar.file_uploader('Choose a Content Image', type=['jpg'], help='Only JPG images are supported')
     style_img = st.sidebar.file_uploader('Choose a Style Image', type=['jpg'], help='Only JPG images are supported')
+
+    col1, col2 = st.columns(2)
+
+    if content_img is not None:
+        with col1:
+            st.image(content_img, caption='Content Image', use_column_width=True)
+
+    if style_img is not None:
+        with col2:
+            st.image(style_img, caption='Style Image', use_column_width=True)
 
     st.sidebar.markdown('## Input Image Sizes')
     content_size = st.sidebar.number_input('Content Image Size', min_value=64, max_value=512, value=192)
