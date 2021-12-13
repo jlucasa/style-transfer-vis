@@ -138,6 +138,7 @@ def style_transfer(
     content_weight, 
     style_weights,
     tv_weight,
+    output_container,
     num_epochs=200,
     init_random=False,
     observe_intermediate_result_count=5
@@ -176,11 +177,11 @@ def style_transfer(
         # in the img Torch tensor, whose requires_grad flag is set to True
         optimizer = torch.optim.Adam([img], lr=initial_lr)
 
-        st.markdown('## Image Outputs')
-        progress_bar = st.progress(0)
-        exception_message = st.empty()
-        info_message = st.info('Starting style transfer...')
-        img_container = st.expander('Image Outputs')
+        output_container.markdown('## Image Outputs')
+        progress_bar = output_container.progress(0)
+        exception_message = output_container.empty()
+        info_message = output_container.info('Starting style transfer...')
+        img_container = output_container.expander('Image Outputs')
         insert_img_in_col1 = True
 
         for t in range(num_epochs):
@@ -226,8 +227,8 @@ def style_transfer(
 
             info_message.info(f'Epoch {t + 1} completed. Total elapsed time: {round(time.time() - epoch_start_time, 2)}s')
 
-        st.header('## Final Image')
-        st.image(deprocess_image(img.data.cpu()), caption='Final Image')
+        output_container.header('## Final Image')
+        output_container.image(deprocess_image(img.data.cpu()), caption='Final Image')
         
         # fig, ax = plt.subplots()
         # ax.axis('off')
@@ -259,9 +260,12 @@ def main():
     """
     st.set_page_config(page_title='Style Transfer Vis', page_icon=':art:')
 
-    st.title('Style Transfer Neural Network Visualization')
-    st.markdown('## Jared Amen, Pranav Rajan, and Alan Weber')
-    st.markdown('## CS 6965: Advanced Data Visualization -- Professor Bei Wang-Phillips -- University of Utah -- Fall 2021')
+    descriptive_container = st.container()
+    output_container = st.container()
+
+    descriptive_container.title('Style Transfer Neural Network Visualization')
+    descriptive_container.markdown('## Jared Amen, Pranav Rajan, and Alan Weber')
+    descriptive_container.markdown('## CS 6965: Advanced Data Visualization -- Professor Bei Wang-Phillips -- University of Utah -- Fall 2021')
 
     st.sidebar.title('Hyperparameter Selection')
     available_layers = [i for i in range(1, len(CNN) + 1)]
@@ -314,7 +318,8 @@ def main():
         'tv_weight': tv_weight,
         'num_epochs': num_epochs,
         'init_random': init_random,
-        'observe_intermediate_result_count': observe_intermediate_result_count
+        'observe_intermediate_result_count': observe_intermediate_result_count,
+        'output_container': output_container
     }
 
     st.sidebar.button(
