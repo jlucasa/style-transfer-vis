@@ -338,7 +338,7 @@ def main():
     tv_weight = st.sidebar.number_input('Total Variation Weight', min_value=1e-3, max_value=1.0, value=2e-2)
     num_epochs = st.sidebar.number_input('Number of Epochs', min_value=1, max_value=500, value=200)
     init_random = st.sidebar.checkbox('Random Initialization', value=False)
-    decay_lr_at = st.sidebar.number_input('Decay Learning Rate At', min_value=1, max_value=num_epochs, value=0.9 * num_epochs)
+    decay_lr_at = st.sidebar.number_input('Decay Learning Rate At', min_value=1, max_value=num_epochs, value=int(0.9 * num_epochs))
     decayed_lr = st.sidebar.number_input('Decayed Learning Rate', min_value=0.1, max_value=1.0, value=0.1)
     initial_lr = st.sidebar.number_input('Initial Learning Rate', min_value=1.0, max_value=5.0, value=3.0)
     observe_intermediate_result_count = st.sidebar.number_input('Epoch Frequency for Observing Intermediate Results', min_value=1, max_value=20, value=5)
