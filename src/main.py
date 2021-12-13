@@ -1,3 +1,4 @@
+from logging import info
 import streamlit as st
 from streamlit.elements.legacy_data_frame import add_rows
 from streamlit.logger import init_tornado_logs
@@ -176,39 +177,50 @@ def style_transfer(
 
         st.markdown('## Image Outputs')
         progress_bar = st.progress(0)
-        info_message = st.info('Starting style transfer...')
         exception_message = st.empty()
+        phase_taken = st.empty()
+        info_message = st.info('Starting style transfer...')
+        img_container = st.expander('Image Outputs')
 
         for t in range(num_epochs):
             progress_bar.progress(t + 1)
 
-            with st.spinner(f'Running Epoch {t + 1} / {num_epochs}...'):
-                print('epoch: ', t + 1)
-                epoch_start_time = time.time()
+            print('epoch: ', t + 1)
+            epoch_start_time = time.time()
 
-                if t < 190:
-                    img.data.clamp_(-1.5, 1.5)
-                optimizer.zero_grad()
+            if t < 190:
+                img.data.clamp_(-1.5, 1.5)
+            optimizer.zero_grad()
 
-                feats = extract_features(img)
+            check_time = time.time()
 
-                c_loss = content_loss(content_weight, feats[content_layer], content_target)
-                s_loss = style_loss(feats, style_layers, style_targets, style_weights)
-                t_loss = tv_loss(img, tv_weight)
-                loss = c_loss + s_loss + t_loss
+            feats = extract_features(img)
 
-                loss.backward()
+            phase_taken.warning(f'Features Extracted. Time taken: {round(time.time() - check_time, 2)}s')
 
-                if t == decay_lr_at:
-                    optimizer = torch.optim.Adam([img], lr=decayed_lr)
-                
-                optimizer.step()
+            check_time = time.time()
+
+            c_loss = content_loss(content_weight, feats[content_layer], content_target)
+            s_loss = style_loss(feats, style_layers, style_targets, style_weights)
+            t_loss = tv_loss(img, tv_weight)
+            loss = c_loss + s_loss + t_loss
+
+            loss.backward()
+
+            phase_taken.warning(f'Loss Computed. Time taken: {round(time.time() - check_time, 2)}s')
+
+            if t == decay_lr_at:
+                optimizer = torch.optim.Adam([img], lr=decayed_lr)
+            
+            optimizer.step()
 
             if t % 20 == 0:
-                st.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
+                img_container.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
+                # st.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
 
             info_message.info(f'Epoch {t + 1} completed. Total elapsed time: {round(time.time() - epoch_start_time, 2)}s')
 
+        st.header('## Final Image')
         st.image(deprocess_image(img.data.cpu()), caption='Final Image')
         
         # fig, ax = plt.subplots()
