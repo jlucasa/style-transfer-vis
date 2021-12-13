@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 SQUEEZENET_MEAN = np.array([0.485, 0.456, 0.406])
 SQUEEZENET_STD = np.array([0.229, 0.224, 0.225])
-DTYPE = torch.FloatTensor
+DTYPE = torch.cuda.FloatTensor
 
 CNN = torchvision.models.squeezenet1_1(pretrained=True).features
 CNN.type(DTYPE)
@@ -203,7 +203,7 @@ def style_transfer(
             check_time = time.time()
 
             if t % 20 == 0:
-                
+
                 fig, ax = plt.subplots()
                 ax.axis('off')
                 ax.imshow(deprocess_image(img.data.cpu()))
