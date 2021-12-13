@@ -1,3 +1,4 @@
+from io import open_code
 from logging import info
 import streamlit as st
 from streamlit.elements.legacy_data_frame import add_rows
@@ -133,8 +134,14 @@ def tv_loss(img, tv_weight):
 #         ax.set_cmap(cmap)
 
 
-def layer_vis(feats, num_epoch, output_container):
+def download_all_figs(figs, epoch):
+    for i, fig in enumerate(figs):
+        fig.savefig(f'activation_maps_{epoch}_{i}.png')
+
+
+def layer_vis(feats, num_epoch, output_container, color_mapping):
     activation_container = output_container.expander(f'Activation Maps for Epoch {num_epoch}')
+    figs = []
 
     for num_layer in range(len(feats)):
         fig, axes = plt.subplots(2, 8, figsize=(50, 10))
@@ -151,9 +158,12 @@ def layer_vis(feats, num_epoch, output_container):
                 row = 1
             
             axes[row, i % 8].axis('off')
-            axes[row, i % 8].imshow(filter, cmap='nipy_spectral')
+            axes[row, i % 8].imshow(filter, cmap=color_mapping)
 
         activation_container.pyplot(fig)
+        figs.append(fig)
+
+    activation_container.button('Download Activation Maps', on_click=download_all_figs, args=[figs, num_epoch])
 
 
 def style_transfer(
@@ -171,7 +181,8 @@ def style_transfer(
     decay_lr_at,
     num_epochs=200,
     init_random=False,
-    observe_intermediate_result_count=5
+    observe_intermediate_result_count=5,
+    color_mapping='nipy_spectral'
 ):
     import time
 
@@ -258,7 +269,7 @@ def style_transfer(
                         img_container.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t}')
                         insert_img_in_col1 = True
                 
-                layer_vis(feats, t, output_container)
+                layer_vis(feats, t, output_container, color_mapping)
                 # st.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
 
             info_message.info(f'Epoch {t} completed. Total elapsed time: {round(time.time() - epoch_start_time, 2)}s')
@@ -342,6 +353,7 @@ def main():
     decayed_lr = st.sidebar.number_input('Decayed Learning Rate', min_value=0.1, max_value=1.0, value=0.1)
     initial_lr = st.sidebar.number_input('Initial Learning Rate', min_value=1.0, max_value=5.0, value=3.0)
     observe_intermediate_result_count = st.sidebar.number_input('Epoch Frequency for Observing Intermediate Results', min_value=1, max_value=20, value=5)
+    color_mapping = st.sidebar.selectbox('Color Mapping', ['nipy_spectral', 'jet', 'gray', 'rainbow'], index=0)
 
     args = {
         'content_img': content_img,
@@ -358,7 +370,8 @@ def main():
         'observe_intermediate_result_count': observe_intermediate_result_count,
         'decay_lr_at': decay_lr_at,
         'decayed_lr': decayed_lr,
-        'initial_lr': initial_lr
+        'initial_lr': initial_lr,
+        'color_mapping': color_mapping
     }
 
     st.sidebar.button(
