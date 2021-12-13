@@ -162,7 +162,7 @@ def layer_vis(feats, num_epoch, output_container, color_mapping):
         activation_container.pyplot(fig)
         figs.append(fig)
 
-    activation_container.button('Download Activation Maps', on_click=download_all_figs, args=[figs, num_epoch])
+    # activation_container.button('Download Activation Maps', on_click=download_all_figs, args=[figs, num_epoch])
 
 
 def style_transfer(
