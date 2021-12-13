@@ -175,11 +175,14 @@ def style_transfer(
         optimizer = torch.optim.Adam([img], lr=initial_lr)
 
         st.markdown('## Image Outputs')
+        progress_bar = st.progress(0)
+        info_message = st.info('Starting style transfer...')
+        exception_message = st.empty()
 
         for t in range(num_epochs):
             print('epoch: ', t)
             check_time = time.time()
-            st.progress(t)
+            progress_bar.progress(t + 1)
 
             if t < 190:
                 img.data.clamp_(-1.5, 1.5)
@@ -202,7 +205,7 @@ def style_transfer(
             if t % 20 == 0:
                 st.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
 
-            st.info(f'Epoch {t + 1} completed. Total elapsed time: {time.time() - check_time}')
+            info_message.info(f'Epoch {t + 1} completed. Total elapsed time: {time.time() - check_time}')
 
         st.image(deprocess_image(img.data.cpu()), caption='Final Image')
         
@@ -215,7 +218,7 @@ def style_transfer(
         st.balloons()
         st.success('Finished! Total elapsed time: ', time.time() - start_time)
     except Exception as e:
-        st.exception(e)
+        exception_message.exception(e)
 
 
 def run_style_transfer(**args):
