@@ -161,6 +161,7 @@ def layer_vis(feats, num_epoch, output_container, color_mapping):
 
         activation_container.pyplot(fig)
         figs.append(fig)
+        plt.close()
 
     # activation_container.button('Download Activation Maps', on_click=download_all_figs, args=[figs, num_epoch])
 
