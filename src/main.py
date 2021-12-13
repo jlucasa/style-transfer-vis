@@ -181,6 +181,7 @@ def style_transfer(
         phase_taken = st.empty()
         info_message = st.info('Starting style transfer...')
         img_container = st.expander('Image Outputs')
+        insert_img_in_col1 = True
 
         for t in range(num_epochs):
             progress_bar.progress(t + 1)
@@ -215,7 +216,16 @@ def style_transfer(
             optimizer.step()
 
             if t % 20 == 0:
-                img_container.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
+                col1, col2 = img_container.columns(2)
+
+                if insert_img_in_col1:
+                    with col1:
+                        img_container.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
+                        insert_img_in_col1 = False
+                else:
+                    with col2:
+                        img_container.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
+                        insert_img_in_col1 = True
                 # st.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
 
             info_message.info(f'Epoch {t + 1} completed. Total elapsed time: {round(time.time() - epoch_start_time, 2)}s')
