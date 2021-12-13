@@ -150,8 +150,8 @@ def layer_vis(feats, num_epoch, output_container):
             if i == 8:
                 row = 1
             
-            axes[i, row].axis('off')
-            axes[i, row].imshow(filter, cmap='nipy_spectral')
+            axes[row, i % 8].axis('off')
+            axes[row, i % 8].imshow(filter, cmap='nipy_spectral')
 
         activation_container.pyplot(fig)
 
