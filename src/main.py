@@ -178,7 +178,6 @@ def style_transfer(
         st.markdown('## Image Outputs')
         progress_bar = st.progress(0)
         exception_message = st.empty()
-        phase_taken = st.empty()
         info_message = st.info('Starting style transfer...')
         img_container = st.expander('Image Outputs')
         insert_img_in_col1 = True
@@ -193,13 +192,11 @@ def style_transfer(
                 img.data.clamp_(-1.5, 1.5)
             optimizer.zero_grad()
 
-            check_time = time.time()
+            # check_time = time.time()
 
             feats = extract_features(img)
 
-            phase_taken.warning(f'Features Extracted. Time taken: {round(time.time() - check_time, 2)}s')
-
-            check_time = time.time()
+            # check_time = time.time()
 
             c_loss = content_loss(content_weight, feats[content_layer], content_target)
             s_loss = style_loss(feats, style_layers, style_targets, style_weights)
@@ -207,8 +204,6 @@ def style_transfer(
             loss = c_loss + s_loss + t_loss
 
             loss.backward()
-
-            phase_taken.warning(f'Loss Computed. Time taken: {round(time.time() - check_time, 2)}s')
 
             if t == decay_lr_at:
                 optimizer = torch.optim.Adam([img], lr=decayed_lr)
