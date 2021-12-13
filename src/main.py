@@ -174,7 +174,7 @@ def style_transfer(
         # in the img Torch tensor, whose requires_grad flag is set to True
         optimizer = torch.optim.Adam([img], lr=initial_lr)
 
-        check_time = time.time()
+        st.markdown('## Image Outputs')
 
         for t in range(num_epochs):
             print('epoch: ', t)
@@ -192,36 +192,30 @@ def style_transfer(
             t_loss = tv_loss(img, tv_weight)
             loss = c_loss + s_loss + t_loss
 
-            check_time = time.time()
-
             loss.backward()
 
             if t == decay_lr_at:
                 optimizer = torch.optim.Adam([img], lr=decayed_lr)
             
             optimizer.step()
-            check_time = time.time()
 
             if t % 20 == 0:
+                st.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
 
-                fig, ax = plt.subplots()
-                ax.axis('off')
-                ax.imshow(deprocess_image(img.data.cpu()))
-                st.pyplot(fig)
-                st.download_button('Download In-Progress Image', deprocess_image(img.data.cpu()))
+            st.info(f'Epoch {t + 1} completed. Total elapsed time: {time.time() - check_time}')
 
-            fig, ax = plt.subplots()
-            ax.axis('off')
-            ax.imshow(deprocess_image(img.data.cpu()))
-            st.pyplot(fig)
-            st.download_button('Download Final Image', deprocess_image(img.data.cpu()))
-
-            print('Total elapsed time: ', time.time() - start_time)
+        st.image(deprocess_image(img.data.cpu()), caption='Final Image')
+        
+        # fig, ax = plt.subplots()
+        # ax.axis('off')
+        # ax.imshow(deprocess_image(img.data.cpu()))
+        # st.pyplot(fig)
+        # st.download_button('Download Final Image', deprocess_image(img.data.cpu()))
         
         st.balloons()
         st.success('Finished! Total elapsed time: ', time.time() - start_time)
     except Exception as e:
-        st.error(f'Error: {e}')
+        st.exception(e)
 
 
 def run_style_transfer(**args):
