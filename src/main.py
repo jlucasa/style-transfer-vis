@@ -307,8 +307,8 @@ def main():
     """
     st.set_page_config(page_title='Style Transfer Vis', page_icon=':art:')
 
-    descriptive_container = st.container()
     initial_imgs_container = st.container()
+    descriptive_container = st.container()
 
     descriptive_container.title('Style Transfer Neural Network Visualization')
     descriptive_container.markdown('## Jared Amen, Pranav Rajan, and Alan Weber')
@@ -324,6 +324,7 @@ def main():
     col1, col2 = initial_imgs_container.columns(2)
 
     if content_img is not None:
+        initial_imgs_container.markdown('## Input Images')
         with col1:
             initial_imgs_container.image(content_img, caption='Content Image', use_column_width=True)
 
