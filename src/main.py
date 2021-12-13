@@ -223,7 +223,10 @@ def style_transfer(
         progress_bar = output_container.progress(0.0)
         exception_message = output_container.empty()
         info_message = output_container.info('Starting style transfer...')
-        img_container = output_container.expander('Image Outputs')
+        output_container.markdown('### Intermediate Images')
+        img_container = output_container.expander('Outputs')
+        activation_map_header = output_container.empty()
+        display_activation_map_header = True
         insert_img_in_col1 = True
 
         print(f'num epochs: {num_epochs}')
@@ -269,6 +272,10 @@ def style_transfer(
                         img_container.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t}')
                         insert_img_in_col1 = True
                 
+                if display_activation_map_header:
+                    activation_map_header.markdown('### Activation Maps')
+                    display_activation_map_header = False
+                    
                 layer_vis(feats, t, output_container, color_mapping)
                 # st.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
 
