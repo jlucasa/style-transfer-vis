@@ -180,40 +180,38 @@ def style_transfer(
         exception_message = st.empty()
 
         for t in range(num_epochs):
-            print('epoch: ', t)
-            epoch_start_time = time.time()
             progress_bar.progress(t + 1)
-
-            if t < 190:
-                img.data.clamp_(-1.5, 1.5)
-            optimizer.zero_grad()
-
-            check_time = time.time()
-
-            feats = extract_features(img)
-
-            info_message.info(f'Features extracted. Time taken: {round(time.time() - check_time, 2)}s')
-
-            check_time = time.time()
             
-            c_loss = content_loss(content_weight, feats[content_layer], content_target)
-            s_loss = style_loss(feats, style_layers, style_targets, style_weights)
-            t_loss = tv_loss(img, tv_weight)
-            loss = c_loss + s_loss + t_loss
+            with st.spinner(f'Running Epoch {t + 1} / {num_epochs}...') as spinner:
+                print('epoch: ', t + 1)
+                epoch_start_time = time.time()
 
-            loss.backward()
+                if t < 190:
+                    img.data.clamp_(-1.5, 1.5)
+                optimizer.zero_grad()
 
-            info_message.info(f'Loss computed. Time taken: {round(time.time() - check_time, 2)}s')
+                spinner.text = 'Extracting features...'
 
-            if t == decay_lr_at:
-                optimizer = torch.optim.Adam([img], lr=decayed_lr)
-            
-            optimizer.step()
+                feats = extract_features(img)
+
+                spinner.text = 'Computing loss...'
+
+                c_loss = content_loss(content_weight, feats[content_layer], content_target)
+                s_loss = style_loss(feats, style_layers, style_targets, style_weights)
+                t_loss = tv_loss(img, tv_weight)
+                loss = c_loss + s_loss + t_loss
+
+                loss.backward()
+
+                if t == decay_lr_at:
+                    optimizer = torch.optim.Adam([img], lr=decayed_lr)
+                
+                optimizer.step()
 
             if t % 20 == 0:
                 st.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
 
-            info_message.info(f'Epoch {t + 1} completed. Total elapsed time: {round(time.time() - epoch_start_time, 2)} seconds.')
+            info_message.info(f'Epoch {t + 1} completed. Total elapsed time: {round(time.time() - epoch_start_time, 2)}s')
 
         st.image(deprocess_image(img.data.cpu()), caption='Final Image')
         
