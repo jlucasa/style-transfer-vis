@@ -137,15 +137,17 @@ def layer_vis(feats, num_epoch, output_container):
     activation_container = output_container.expander(f'Activation Maps for Epoch {num_epoch}')
 
     for num_layer in range(len(feats)):
-        fig, ax = plt.subplots(16, figsize=(50, 10))
+        fig, axes = plt.subplots(2, 8, figsize=(50, 10))
+        fig.suptitle(f'Activation Maps for Layer {num_layer}')
+
         layer_vis = feats[num_layer][0, :, :, :].data.cpu()
         
         for i, filter in enumerate(layer_vis):
             if i == 16:
                 break
 
-            ax.axis('off')
-            ax.imshow(filter, cmap='nipy_spectral')
+            axes[i].axis('off')
+            axes[i].imshow(filter, cmap='nipy_spectral')
 
         activation_container.pyplot(fig)
 
