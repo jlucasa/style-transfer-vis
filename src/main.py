@@ -202,7 +202,7 @@ def style_transfer(
         optimizer = torch.optim.Adam([img], lr=initial_lr)
 
         output_container.markdown('## Image Outputs')
-        progress_bar = output_container.progress(0)
+        progress_bar = output_container.progress(0.0)
         exception_message = output_container.empty()
         info_message = output_container.info('Starting style transfer...')
         img_container = output_container.expander('Image Outputs')
@@ -211,7 +211,7 @@ def style_transfer(
         print(f'num epochs: {num_epochs}')
 
         for t in range(num_epochs):
-            progress_bar.progress(((t + 1) / num_epochs) * 100)
+            progress_bar.progress((t + 1) / num_epochs)
 
             print('epoch: ', t)
             epoch_start_time = time.time()
