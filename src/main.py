@@ -139,7 +139,8 @@ def style_transfer(
     style_weights,
     tv_weight,
     num_epochs=200,
-    init_random=False
+    init_random=False,
+    observe_intermediate_result_count=5
 ):
     import time
 
@@ -210,7 +211,7 @@ def style_transfer(
             
             optimizer.step()
 
-            if t % 20 == 0:
+            if t % observe_intermediate_result_count == 0:
                 col1, col2 = img_container.columns(2)
 
                 if insert_img_in_col1:
@@ -298,6 +299,9 @@ def main():
     num_epochs = st.sidebar.number_input('Number of Epochs', min_value=1, max_value=500, value=200)
     init_random = st.sidebar.checkbox('Random Initialization', value=False)
 
+    st.sidebar.markdown('## Visualization Hyperparameters')
+    observe_intermediate_result_count = st.sidebar.number_input('Epoch Frequency for Observing Intermediate Results', min_value=1, max_value=20, value=5)
+
     args = {
         'content_img': content_img,
         'style_img': style_img,
@@ -309,7 +313,8 @@ def main():
         'content_weight': content_weight,
         'tv_weight': tv_weight,
         'num_epochs': num_epochs,
-        'init_random': init_random
+        'init_random': init_random,
+        'observe_intermediate_result_count': observe_intermediate_result_count
     }
 
     st.sidebar.button(
