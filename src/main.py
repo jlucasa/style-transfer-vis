@@ -128,6 +128,28 @@ def tv_loss(img, tv_weight):
     return tv_weight * (sum((image2 - image1) ** 2) + sum((image4 - image3) ** 2))
 
 
+# def change_color_mapping(fig, cmap):
+#     for ax in fig.axes:
+#         ax.set_cmap(cmap)
+
+
+def layer_vis(feats, num_epoch, output_container):
+    activation_container = output_container.expander(f'Activation Maps for Epoch {num_epoch}')
+
+    for num_layer in range(len(feats)):
+        fig, ax = plt.subplots(16, figsize=(50, 10))
+        layer_vis = feats[num_layer][0, :, :, :].data.cpu()
+        
+        for i, filter in enumerate(layer_vis):
+            if i == 16:
+                break
+
+            ax.axis('off')
+            ax.imshow(filter, cmap='nipy_spectral')
+
+        activation_container.pyplot(fig)
+
+
 def style_transfer(
     content_img, 
     style_img, 
@@ -184,10 +206,12 @@ def style_transfer(
         img_container = output_container.expander('Image Outputs')
         insert_img_in_col1 = True
 
-        for t in range(num_epochs):
-            progress_bar.progress(t + 1)
+        print(f'num epochs: {num_epochs}')
 
-            print('epoch: ', t + 1)
+        for t in range(num_epochs):
+            progress_bar.progress(((t + 1) / num_epochs) * 100)
+
+            print('epoch: ', t)
             epoch_start_time = time.time()
 
             if t < 190:
@@ -217,15 +241,17 @@ def style_transfer(
 
                 if insert_img_in_col1:
                     with col1:
-                        img_container.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
+                        img_container.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t}')
                         insert_img_in_col1 = False
                 else:
                     with col2:
-                        img_container.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
+                        img_container.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t}')
                         insert_img_in_col1 = True
+                
+                layer_vis(feats, t, output_container)
                 # st.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
 
-            info_message.info(f'Epoch {t + 1} completed. Total elapsed time: {round(time.time() - epoch_start_time, 2)}s')
+            info_message.info(f'Epoch {t} completed. Total elapsed time: {round(time.time() - epoch_start_time, 2)}s')
 
         output_container.markdown('## Final Image')
         output_container.image(deprocess_image(img.data.cpu()), caption='Final Image')
