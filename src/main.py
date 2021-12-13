@@ -138,7 +138,7 @@ def layer_vis(feats, num_epoch, output_container):
 
     for num_layer in range(len(feats)):
         fig, axes = plt.subplots(2, 8, figsize=(50, 10))
-        fig.suptitle(f'Activation Maps for Layer {num_layer}')
+        fig.suptitle(f'Activation Maps for Layer {num_layer}', fontsize=36)
 
         layer_vis = feats[num_layer][0, :, :, :].data.cpu()
         row = 0
