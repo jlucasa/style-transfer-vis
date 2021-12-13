@@ -166,6 +166,9 @@ def style_transfer(
     content_weight, 
     style_weights,
     tv_weight,
+    initial_lr,
+    decayed_lr,
+    decay_lr_at,
     num_epochs=200,
     init_random=False,
     observe_intermediate_result_count=5
@@ -196,10 +199,10 @@ def style_transfer(
         # We do want the gradient computed on our image!
         img.requires_grad_()
 
-        # Set up optimization hyperparameters
-        initial_lr = 3.0
-        decayed_lr = 0.1
-        decay_lr_at = 180
+        # # Set up optimization hyperparameters
+        # initial_lr = 3.0
+        # decayed_lr = 0.1
+        # decay_lr_at = 180
 
         # Note that we are optimizing the pixel values of the image by passing
         # in the img Torch tensor, whose requires_grad flag is set to True
@@ -243,6 +246,7 @@ def style_transfer(
             optimizer.step()
 
             if t % observe_intermediate_result_count == 0:
+                info_message.info(f'Plotting activation maps for epoch {t}...')
                 col1, col2 = img_container.columns(2)
 
                 if insert_img_in_col1:
@@ -330,12 +334,13 @@ def main():
     content_layer = st.sidebar.selectbox('Content Layer', available_layers, format_func=lambda x: f'Feature {x}', index=2)
     content_weight = st.sidebar.number_input('Content Layer Weight', min_value=1e-3, max_value=1.0, value=6e-2)
 
-    st.sidebar.markdown('## Optimization Hyperparameters')
+    st.sidebar.markdown('## Other')
     tv_weight = st.sidebar.number_input('Total Variation Weight', min_value=1e-3, max_value=1.0, value=2e-2)
     num_epochs = st.sidebar.number_input('Number of Epochs', min_value=1, max_value=500, value=200)
     init_random = st.sidebar.checkbox('Random Initialization', value=False)
-
-    st.sidebar.markdown('## Visualization Hyperparameters')
+    decay_lr_at = st.sidebar.number_input('Decay Learning Rate At', min_value=1, max_value=num_epochs, value=0.9 * num_epochs)
+    decayed_lr = st.sidebar.number_input('Decayed Learning Rate', min_value=0.1, max_value=1.0, value=0.1)
+    initial_lr = st.sidebar.number_input('Initial Learning Rate', min_value=1.0, max_value=5.0, value=3.0)
     observe_intermediate_result_count = st.sidebar.number_input('Epoch Frequency for Observing Intermediate Results', min_value=1, max_value=20, value=5)
 
     args = {
@@ -351,6 +356,9 @@ def main():
         'num_epochs': num_epochs,
         'init_random': init_random,
         'observe_intermediate_result_count': observe_intermediate_result_count,
+        'decay_lr_at': decay_lr_at,
+        'decayed_lr': decayed_lr,
+        'initial_lr': initial_lr
     }
 
     st.sidebar.button(
