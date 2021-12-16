@@ -1,7 +1,27 @@
-from logging import info
+'''
+Style Transfer Neural Net Visualization Project
+CS 6965: Advanced Data Visualization
+University of Utah: Dr. Bei Wang-Phillips
+
+Alan Weber, Jared Amen, Pranav Rajan
+Fall 2021
+
+This script runs a Streamlit server on localhost with a user interface
+that allows a user to input a content image and style image (along with
+weights, emphasized layers, and other applicable hyperparameters)
+for the purposes of style transfer (as in 
+http://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Gatys_Image_Style_Transfer_CVPR_2016_paper.pdf).
+
+The purpose of this playground is to implement intermediate activation maps
+and resultant images for the user as the neural net is being ran, exposing
+details of the "black box" that is typically deep learning. By default, the
+first 16 channels of all 13 layers are displayed using a spectral colormap,
+but the user has the option of displaying these channels using a spectral,
+grayscale, rainbow, and jet colormap (as defined by matplotlib).
+'''
+
+# Libraries
 import streamlit as st
-from streamlit.elements.legacy_data_frame import add_rows
-from streamlit.logger import init_tornado_logs
 import torch
 import torch.nn as nn
 import torchvision
@@ -11,13 +31,16 @@ import numpy as np
 from collections import namedtuple
 import matplotlib.pyplot as plt
 
+# Supplementary constants for image/tensor conversion
 SQUEEZENET_MEAN = np.array([0.485, 0.456, 0.406])
 SQUEEZENET_STD = np.array([0.229, 0.224, 0.225])
 DTYPE = torch.cuda.FloatTensor
 
+# Pretrained CNN for feature extraction
 CNN = torchvision.models.squeezenet1_1(pretrained=True).features
 CNN.type(DTYPE)
 
+# Default weights for UI
 WEIGHTS_MAP = {
     1: 300000,
     4: 1000,
@@ -26,6 +49,17 @@ WEIGHTS_MAP = {
 }
 
 def preprocess_image(img, size=512):
+    '''
+    Preprocesses the input image for the style transfer.
+
+    Inputs:
+    - img: PIL image of shape (1, 3, H, W)
+    - size: (1, 3, H, W) with H, W = imgsize
+
+    Returns:
+    - Tensor of shape (1, 3, H, W)
+    '''
+
     transform = T.Compose([
         T.Resize(size),
         T.ToTensor(),
@@ -38,6 +72,16 @@ def preprocess_image(img, size=512):
 
 
 def deprocess_image(img):
+    '''
+    De-process an image so that it looks good in the original scale.
+
+    Inputs:
+    - img: PyTorch Variable of shape (1, 3, H, W) holding a batch of images
+
+    Returns:
+    - deprocessed_img: a PyTorch Tensor of shape (3, H, W) holding the deprocessed image
+    '''
+
     transform = T.Compose([
         T.Lambda(lambda x: x[0]),
         T.Normalize(mean=[0, 0, 0], std=[1.0 / s for s in SQUEEZENET_STD.tolist()]),
@@ -50,18 +94,53 @@ def deprocess_image(img):
 
 
 def rescale(x):
+    '''
+    Rescale an image tensor of shape (N, C, H, W) to be within the range [0, 1]
+
+    Inputs:
+    - x: PyTorch Tensor of shape (N, C, H, W) holding images to be rescaled.
+
+    Returns:
+    - Tensor of shape (N, C, H, W)
+    '''
     low, high = x.min(), x.max()
     x_rescaled = (x - low) / (high - low)
     return x_rescaled
 
 
 def features_from_img(imgpath, imgsize):
+    '''
+    Read an image from imgpath, resize it to imgsize, and extract features.
+
+    Inputs:
+    - imgpath: path to the image file
+    - imgsize: size to resize the image to: (imgsize, imgsize)
+
+    Returns:
+    - img_var: a PyTorch Variable of shape (1, C, H, W)
+    - features: a list of PyTorch Variables, representing the features
+        from the CNN; each has shape (1, C_i, H_i, W_i)
+    '''
     img = preprocess_image(PIL.Image.open(imgpath), size=imgsize)
     img_var = img.type(DTYPE)
     return extract_features(img_var), img_var
     
 
 def extract_features(x, cnn=CNN):
+    '''
+    Use the CNN to extract features from the input image x.
+    
+    Inputs:
+    - x: A PyTorch Tensor of shape (N, C, H, W) holding a minibatch of images that
+      will be fed to the CNN.
+    - cnn: A PyTorch model that we will use to extract features.
+    
+    Returns:
+    - features: A list of feature for the input images x extracted using the cnn model.
+      features[i] is a PyTorch Tensor of shape (N, C_i, H_i, W_i); recall that features
+      from different layers of the network may have different numbers of channels (C_i) and
+      spatial dimensions (H_i, W_i).
+    '''
     features = []
     prev_feat = x
 
@@ -74,6 +153,18 @@ def extract_features(x, cnn=CNN):
 
 
 def content_loss(content_weight, content_current, content_original):
+    '''
+    Compute the content loss for style transfer.
+    
+    Inputs:
+    - content_weight: Scalar giving the weighting for the content loss.
+    - content_current: features of the current image; this is a PyTorch Tensor of shape
+      (1, C_l, H_l, W_l).
+    - content_target: features of the content image, Tensor with shape (1, C_l, H_l, W_l).
+    
+    Returns:
+    - scalar content loss
+    '''
     shape = content_current.shape
     print('content shape: ', shape)
     dim = shape[1] * shape[2] * shape[3]
@@ -88,6 +179,19 @@ def content_loss(content_weight, content_current, content_original):
 
 
 def gram_matrix(features, normalize=True):
+    '''
+    Compute the Gram matrix from features.
+    
+    Inputs:
+    - features: PyTorch Tensor of shape (N, C, H, W) giving features for
+      a batch of N images.
+    - normalize: optional, whether to normalize the Gram matrix
+        If True, divide the Gram matrix by the number of neurons (H * W * C)
+    
+    Returns:
+    - gram: PyTorch Tensor of shape (N, C, C) giving the
+      (optionally normalized) Gram matrices for the N input images.
+    '''
     N, C, H, W = features.shape
     M = H * W
     G = torch.zeros(N, C, C)
@@ -104,6 +208,23 @@ def gram_matrix(features, normalize=True):
 
 
 def style_loss(feats, style_layers, style_targets, style_weights):
+    '''
+    Computes the style loss at a set of layers.
+    
+    Inputs:
+    - feats: list of the features at every layer of the current image, as produced by
+      the extract_features function.
+    - style_layers: List of layer indices into feats giving the layers to include in the
+      style loss.
+    - style_targets: List of the same length as style_layers, where style_targets[i] is
+      a PyTorch Tensor giving the Gram matrix of the source style image computed at
+      layer style_layers[i].
+    - style_weights: List of the same length as style_layers, where style_weights[i]
+      is a scalar giving the weight for the style loss at layer style_layers[i].
+      
+    Returns:
+    - style_loss: A PyTorch Tensor holding a scalar giving the style loss.
+    '''
     n_layers = len(style_layers)
     print('In style loss - # of style layers: ', n_layers)
     l_tot = 0
@@ -119,6 +240,17 @@ def style_loss(feats, style_layers, style_targets, style_weights):
 
 
 def tv_loss(img, tv_weight):
+    '''
+    Compute total variation loss.
+    
+    Inputs:
+    - img: PyTorch Variable of shape (1, 3, H, W) holding an input image.
+    - tv_weight: Scalar giving the weight w_t to use for the TV loss.
+    
+    Returns:
+    - loss: PyTorch Variable holding a scalar giving the total variation loss
+      for img weighted by tv_weight.
+    '''
     image = img
     image1 = image[:, :, 1:, :].flatten()
     image2 = image[:, :, :-1, :].flatten()
@@ -139,6 +271,16 @@ def download_all_figs(figs, epoch):
 
 
 def layer_vis(feats, num_epoch, output_container, color_mapping):
+    '''
+    Visualize intermediate layers using Matplotlib. By default,
+    visualizes the first 16 channels of each layer.
+
+    Args:
+    - feats: A list of features from extract_features().
+    - num_epoch: The epoch number.
+    - output_container: The Streamlit container to output activation maps to.
+    - color_mapping: A list of color mappings.
+    '''
     activation_container = output_container.expander(f'Activation Maps for Epoch {num_epoch}')
     figs = []
 
@@ -184,6 +326,25 @@ def style_transfer(
     observe_intermediate_result_count=5,
     color_mapping='nipy_spectral'
 ):
+    '''
+    Run style transfer using pretrained SqueezeNet!
+    
+    Inputs:
+    - content_image: filename of content image
+    - style_image: filename of style image
+    - image_size: size of smallest image dimension (used for content loss and generated image)
+    - style_size: size of smallest style image dimension
+    - content_layer: layer to use for content loss
+    - content_weight: weighting on content loss
+    - style_layers: list of layers to use for style loss
+    - style_weights: list of weights to use for each layer in style_layers
+    - tv_weight: weight of total variation regularization term
+    - init_random: initialize the starting image to uniform random noise
+    - num_epochs: number of epochs to run
+    - observe_intermediate_result_count: number of epochs to observe intermediate results
+    - color_mapping: color mapping to use for generated image
+    '''
+
     import time
 
     try:
@@ -297,6 +458,27 @@ def style_transfer(
 
 
 def run_style_transfer(**args):
+    '''
+    Run style transfer using pretrained SqueezeNet (with error checking)!
+
+    This function should only be called from the UI
+
+    Inputs:
+    - content_image: filename of content image
+    - style_image: filename of style image
+    - image_size: size of smallest image dimension (used for content loss and generated image)
+    - style_size: size of smallest style image dimension
+    - content_layer: layer to use for content loss
+    - content_weight: weighting on content loss
+    - style_layers: list of layers to use for style loss
+    - style_weights: list of weights to use for each layer in style_layers
+    - tv_weight: weight of total variation regularization term
+    - init_random: initialize the starting image to uniform random noise
+    - num_epochs: number of epochs to run
+    - observe_intermediate_result_count: number of epochs to observe intermediate results
+    - color_mapping: color mapping to use for generated image
+    '''
+
     for key in args:
         if args[key] is None:
             print(key)
@@ -312,22 +494,29 @@ def main():
     """
     Main function
     """
+
+    # Page Config
     st.set_page_config(page_title='Style Transfer Vis', page_icon=':art:')
 
+    # Containers
     initial_imgs_container = st.container()
     descriptive_container = st.container()
 
+    # Markdown Description of Project
     descriptive_container.title('Style Transfer Neural Network Visualization')
     descriptive_container.markdown('## Jared Amen, Pranav Rajan, and Alan Weber')
     descriptive_container.markdown('## CS 6965: Advanced Data Visualization -- Professor Bei Wang-Phillips -- University of Utah -- Fall 2021')
 
+    # Sidebar
     st.sidebar.title('Hyperparameter Selection')
     available_layers = [i for i in range(1, len(CNN) + 1)]
 
+    # Sidebar -- Upload Images
     st.sidebar.markdown('## Upload Images')
     content_img = st.sidebar.file_uploader('Choose a Content Image', type=['jpg'], help='Only JPG images are supported')
     style_img = st.sidebar.file_uploader('Choose a Style Image', type=['jpg'], help='Only JPG images are supported')
 
+    # Display Input Images
     col1, col2 = initial_imgs_container.columns(2)
 
     if content_img is not None:
@@ -339,29 +528,42 @@ def main():
         with col2:
             initial_imgs_container.image(style_img, caption='Style Image', use_column_width=True)
 
+    # Sidebar -- Upload Image Sizes
     st.sidebar.markdown('## Input Image Sizes')
     content_size = st.sidebar.number_input('Content Image Size', min_value=64, max_value=512, value=192)
     style_size = st.sidebar.number_input('Style Image Size', min_value=64, max_value=512, value=192)
 
+    # Sidebar -- Select Style Layers/Weights to Use
     st.sidebar.markdown('## Style Layers')
     style_layers = st.sidebar.multiselect('Style Layers (no more than 4 recommended)', available_layers, format_func=lambda x: f'Feature {x}', default=[1, 4, 6, 7])
     style_weights = [
         st.sidebar.number_input(f'Style Layer {i} Weight', min_value=1, max_value=500000, value=WEIGHTS_MAP[i] if i in WEIGHTS_MAP else 100) for i in style_layers
     ]
 
+    # Sidebar -- Select Content Layer/Weight to Use
     st.sidebar.markdown('## Content Layer')
     content_layer = st.sidebar.selectbox('Content Layer', available_layers, format_func=lambda x: f'Feature {x}', index=2)
     content_weight = st.sidebar.number_input('Content Layer Weight', min_value=1e-3, max_value=1.0, value=6e-2)
 
-    st.sidebar.markdown('## Other')
-    tv_weight = st.sidebar.number_input('Total Variation Weight', min_value=1e-3, max_value=1.0, value=2e-2)
+    # Sidebar -- Number of Epochs
+    st.sidebar.markdown('## Number of Epochs')
     num_epochs = st.sidebar.number_input('Number of Epochs', min_value=1, max_value=500, value=200)
-    init_random = st.sidebar.checkbox('Random Initialization', value=False)
+
+    # Sidebar -- TV
+    st.sidebar.markdown('## Total Variation')
+    tv_weight = st.sidebar.number_input('Total Variation Weight', min_value=1e-3, max_value=1.0, value=2e-2)
+
+    # Sidebar -- Learning Rate
+    st.sidebar.markdown('## Learning Rate Hyperparameters')
     decay_lr_at = st.sidebar.number_input('Decay Learning Rate At', min_value=1, max_value=num_epochs, value=int(0.9 * num_epochs))
     decayed_lr = st.sidebar.number_input('Decayed Learning Rate', min_value=0.1, max_value=1.0, value=0.1)
     initial_lr = st.sidebar.number_input('Initial Learning Rate', min_value=1.0, max_value=5.0, value=3.0)
+
+    # Sidebar -- Intermediate Vis
+    st.sidebar.markdown('## Intermediate Visualization')
     observe_intermediate_result_count = st.sidebar.number_input('Epoch Frequency for Observing Intermediate Results', min_value=1, max_value=20, value=5)
     color_mapping = st.sidebar.selectbox('Color Mapping', ['nipy_spectral', 'jet', 'gray', 'rainbow'], index=0)
+    init_random = st.sidebar.checkbox('Random Initialization', value=False)
 
     args = {
         'content_img': content_img,
