@@ -28,7 +28,6 @@ import torchvision
 import torchvision.transforms as T
 import PIL
 import numpy as np
-from collections import namedtuple
 import matplotlib.pyplot as plt
 
 # Supplementary constants for image/tensor conversion
@@ -103,6 +102,7 @@ def rescale(x):
     Returns:
     - Tensor of shape (N, C, H, W)
     '''
+
     low, high = x.min(), x.max()
     x_rescaled = (x - low) / (high - low)
     return x_rescaled
@@ -121,6 +121,7 @@ def features_from_img(imgpath, imgsize):
     - features: a list of PyTorch Variables, representing the features
         from the CNN; each has shape (1, C_i, H_i, W_i)
     '''
+
     img = preprocess_image(PIL.Image.open(imgpath), size=imgsize)
     img_var = img.type(DTYPE)
     return extract_features(img_var), img_var
@@ -505,7 +506,147 @@ def main():
     # Markdown Description of Project
     descriptive_container.title('Style Transfer Neural Network Visualization')
     descriptive_container.markdown('## Jared Amen, Pranav Rajan, and Alan Weber')
-    descriptive_container.markdown('## CS 6965: Advanced Data Visualization -- Professor Bei Wang-Phillips -- University of Utah -- Fall 2021')
+    descriptive_container.markdown('## CS 6965: Advanced Data Visualization -- Fall 2021')
+    descriptive_container.markdown('### Professor Bei Wang-Phillips -- University of Utah')
+
+    descriptive_container.markdown('## How to Use This Software')
+    descriptive_container.markdown('**Note:** If you are using this software with our default images (`tubingen.jpg` and `starry_night.jpg` -- see below)), you can simply upload the images and run style transfer with the default parameters, as the UI is set up by default for optimal handling of hyperparameters for these images.')
+    descriptive_container.markdown('### Step 1: Upload a Content and Style Image')
+    descriptive_container.markdown('You can upload any content and style image you\'d like. Keep in mind that the content image is the "destination" image and the style image is the "source" image.')
+    descriptive_container.markdown('### Step 2: Choose Hyperparameters')
+
+    descriptive_container.markdown('## Project Introduction')
+    descriptive_container.markdown('### Background and Motivation')
+    descriptive_container.markdown('''
+        - Artificial Neural Networks are increasingly prevalent in analytic solutions for many industries
+        - Understanding their “decision making process” is a key factor in the adoption of this technology
+        - Visual interpretation of their operation constitutes a big step in this direction
+        - The “style transfer” use case for convolutional neural nets (CNNs) is visually compelling and germane for manufacturing defect inspection applications
+    ''')
+    descriptive_container.markdown('### Convolutional Neural Net (CNN) Basics')
+    descriptive_container.markdown('''
+        Convolutional neural nets consists of some `n` layers, where each layer is one of the following types:
+
+        - `convolution + ReLU`
+        - `max pooling`
+        - `fully connected + ReLU`
+        - `softmax`
+
+        `softmax` represents the final layer, which captures the highest-level detail for that layer. `max pooling` layers "compress" the image, increasing
+        the number of channels while decreasing the resolution of the image (thus transitioning to higher-level details).
+    ''')
+    descriptive_container.image('./assets/cnn-basics.png', caption='Basics of a CNN')
+    descriptive_container.markdown('The below image shows intermediate activation maps of VGG-16, a neural net trained for image recognition, which shows a similar low-to-high level of feature extraction from lower to higher layers (ending with a linearly separable classifier).')
+    descriptive_container.image('./assets/vgg-16.png', caption='VGG-16 Intermediate Activation Maps')
+    descriptive_container.markdown('### Style Transfer Use Case')
+    descriptive_container.markdown('''
+        Below we see the behavior and use case of style transfer. Style Transfer is a technique for transferring style from one image to another.
+        For instance, with a neural net trained for style transferral, we can transpose the style of *Starry Night* by Van Gogh to a picture of
+        architecture in Tubingen, Germany. SqueezeNet is one such neural net trained for style transferral, and it consists of 13 layers, where some
+        modules utilize a unique "Fire" architecture. These "Fire" modules consist of a "squeeze" layer with 1x1 filters feeding an "expand" layer with 1x1
+        and 3x3 filters, thus achieving [AlexNet](https://en.wikipedia.org/wiki/AlexNet)-level accuracy on [ImageNet](https://image-net.org/) with 50x fewer parameters.
+        The structure is defined below:
+    ''')
+    descriptive_container.code('''
+        Sequential(
+            (0): Conv2d(3, 64, kernel_size=(3, 3), stride=(2, 2))
+            (1): ReLU(inplace=True)
+            (2): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
+            (3): Fire(
+                (squeeze): Conv2d(64, 16, kernel_size=(1, 1), stride=(1, 1))
+                (squeeze_activation): ReLU(inplace=True)
+                (expand1x1): Conv2d(16, 64, kernel_size=(1, 1), stride=(1, 1))
+                (expand1x1_activation): ReLU(inplace=True)
+                (expand3x3): Conv2d(16, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+                (expand3x3_activation): ReLU(inplace=True)
+            )
+            (4): Fire(
+                (squeeze): Conv2d(128, 16, kernel_size=(1, 1), stride=(1, 1))
+                (squeeze_activation): ReLU(inplace=True)
+                (expand1x1): Conv2d(16, 64, kernel_size=(1, 1), stride=(1, 1))
+                (expand1x1_activation): ReLU(inplace=True)
+                (expand3x3): Conv2d(16, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+                (expand3x3_activation): ReLU(inplace=True)
+            )
+            (5): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
+            (6): Fire(
+                (squeeze): Conv2d(128, 32, kernel_size=(1, 1), stride=(1, 1))
+                (squeeze_activation): ReLU(inplace=True)
+                (expand1x1): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1))
+                (expand1x1_activation): ReLU(inplace=True)
+                (expand3x3): Conv2d(32, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+                (expand3x3_activation): ReLU(inplace=True)
+            )
+            (7): Fire(
+                (squeeze): Conv2d(256, 32, kernel_size=(1, 1), stride=(1, 1))
+                (squeeze_activation): ReLU(inplace=True)
+                (expand1x1): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1))
+                (expand1x1_activation): ReLU(inplace=True)
+                (expand3x3): Conv2d(32, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+                (expand3x3_activation): ReLU(inplace=True)
+            )
+            (8): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
+            (9): Fire(
+                (squeeze): Conv2d(256, 48, kernel_size=(1, 1), stride=(1, 1))
+                (squeeze_activation): ReLU(inplace=True)
+                (expand1x1): Conv2d(48, 192, kernel_size=(1, 1), stride=(1, 1))
+                (expand1x1_activation): ReLU(inplace=True)
+                (expand3x3): Conv2d(48, 192, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+                (expand3x3_activation): ReLU(inplace=True)
+            )
+            (10): Fire(
+                (squeeze): Conv2d(384, 48, kernel_size=(1, 1), stride=(1, 1))
+                (squeeze_activation): ReLU(inplace=True)
+                (expand1x1): Conv2d(48, 192, kernel_size=(1, 1), stride=(1, 1))
+                (expand1x1_activation): ReLU(inplace=True)
+                (expand3x3): Conv2d(48, 192, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+                (expand3x3_activation): ReLU(inplace=True)
+            )
+            (11): Fire(
+                (squeeze): Conv2d(384, 64, kernel_size=(1, 1), stride=(1, 1))
+                (squeeze_activation): ReLU(inplace=True)
+                (expand1x1): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1))
+                (expand1x1_activation): ReLU(inplace=True)
+                (expand3x3): Conv2d(64, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+                (expand3x3_activation): ReLU(inplace=True)
+            )
+            (12): Fire(
+                (squeeze): Conv2d(512, 64, kernel_size=(1, 1), stride=(1, 1))
+                (squeeze_activation): ReLU(inplace=True)
+                (expand1x1): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1))
+                (expand1x1_activation): ReLU(inplace=True)
+                (expand3x3): Conv2d(64, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+                (expand3x3_activation): ReLU(inplace=True)
+            )
+        )
+    ''')
+    descriptive_container.markdown('''
+        Fire modules are illustrated in better detail below:
+    ''')
+    descriptive_container.image('./fire.png', caption='An Illustration of a Fire Module')
+    descriptive_container.markdown('## Feature Visualization')
+    descriptive_container.markdown('''
+        - SqueezeNet has 13 different layers and each layer generates an output of a different number of channels (multiple of 16)
+        - Features (activation vector for each layer) are represented as tensors
+        - To visualize the features of intermediate layers, we capture 16 different channels of the output of every layer depending on an epoch factor selected by a user
+        - We experimented with different colormaps including spectral, greyscale, jet, and rainbow
+        - We chose spectral because it had a good proportion of Red, Green and Blue values especially for individual pixels in the last few layers
+    ''')
+    descriptive_container.markdown('''
+        To test intermediate visualization, we used the following content and style image:
+    ''')
+
+    col1, col2 = descriptive_container.columns(2)
+
+    with col1:
+        descriptive_container.image('./tubingen.jpg', caption='A picture of architecture Tubingen, Germany, used as the content image')
+    with col2:
+        descriptive_container.image('./starry_night.jpg', caption='A picture of Starry Night by Van Gogh, used as the style image')
+
+    descriptive_container.markdown('''
+        With these input images, we are able to utilize this playground interface to generate intermediate composite images *and* intermediate activation maps of SqueezeNet as ran on them.
+        Below are some of our results.
+    ''')
 
     # Sidebar
     st.sidebar.title('Hyperparameter Selection')
