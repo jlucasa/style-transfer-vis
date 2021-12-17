@@ -949,7 +949,7 @@ Sequential(
         }
     )
 
-    with st.sidebar.expander('Table of Contents'):
+    with st.sidebar.beta_expander('Table of Contents'):
         st.sidebar.markdown('''
             - [How to Use this Workbench](#how-to-use-this-workbench)
                 1. [Upload a Content and Style Image](#step-1-upload-a-content-and-style-image)
