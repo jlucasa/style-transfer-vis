@@ -331,7 +331,7 @@ def layer_vis(feats, num_epoch, output_container, feats_choices, channel_break_c
     figs = []
 
     for num_layer in feats_choices:
-        fig, axes = plt.subplots(len(feats[num_layer][0, :]) / 8, 8, figsize=(50, 10))
+        fig, axes = plt.subplots(int(len(feats[num_layer][0, :]) / 8), 8, figsize=(50, 10))
         fig.suptitle(f'Activation Maps for Layer {num_layer}', fontsize=36)
 
         layer_vis = feats[num_layer][0, :, :, :].data.cpu()
