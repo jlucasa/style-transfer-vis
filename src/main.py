@@ -32,6 +32,7 @@ import matplotlib.pyplot as plt
 import re
 import zipfile
 import os
+import datetime
 
 # Supplementary constants for image/tensor conversion
 SQUEEZENET_MEAN = np.array([0.485, 0.456, 0.406])
@@ -501,13 +502,13 @@ def style_transfer(
                 )
                 # st.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
 
-            info_message.info(f'Epoch {t} completed. Total elapsed time: {round(time.time() - epoch_start_time, 2)}s')
+            info_message.info(f'Epoch {t} completed. Total elapsed time: {datetime.timedelta(seconds=round(time.time() - epoch_start_time, 2))}')
 
         output_container.markdown('## Final Image')
         output_container.image(deprocess_image(img.data.cpu()), caption='Final Image')
         
         st.balloons()
-        info_message.success(f'Finished! Total elapsed time: {round(time.time() - start_time, 2)}s')
+        info_message.success(f'Finished! Total elapsed time: {datetime.timedelta(seconds=round(time.time() - start_time, 2))}')
     except Exception as e:
         exception_message.exception(e)
 
