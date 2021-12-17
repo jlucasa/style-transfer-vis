@@ -396,7 +396,7 @@ def layer_vis(
 
     for num_layer in feats_choices:
         num_channels = len(feats[num_layer][0, :])
-        fig, axes = plt.subplots(num_rows if num_rows > 0 else max(num_channels // -num_rows, 1), num_cols(num_channels), figsize=(60, 20), squeeze=False)  
+        fig, axes = plt.subplots(num_rows if num_rows > 0 else max(num_channels // -num_rows, 1), num_cols(num_channels), figsize=(50, 10), squeeze=False)  
 
         fig.suptitle(f'Activation Maps for Layer {num_layer}', fontsize=36)
 
@@ -506,7 +506,7 @@ def style_transfer(
         output_container.markdown('## Image Outputs')
         progress_bar = output_container.progress(0.0)
         info_message = output_container.info('Starting style transfer...')
-        output_container.markdown('### Intermediate Images')
+        output_container.markdown('### Composite Images')
         img_container = output_container.expander('Outputs')
         activation_map_header = output_container.empty()
         display_activation_map_header = True
@@ -637,36 +637,35 @@ def main():
 
     # Containers
     initial_imgs_container = st.container()
-    descriptive_container = st.container()
 
     # Markdown Description of Project
-    descriptive_container.title('Style Transfer Neural Network Visualization')
-    descriptive_container.markdown('## Jared Amen, Pranav Rajan, and Alan Weber')
-    descriptive_container.markdown('## CS 6965: Advanced Data Visualization -- Fall 2021')
-    descriptive_container.markdown('### Professor Bei Wang-Phillips -- University of Utah')
+    st.title('Style Transfer Neural Network Visualization')
+    st.markdown('## Jared Amen, Pranav Rajan, and Alan Weber')
+    st.markdown('## CS 6965: Advanced Data Visualization -- Fall 2021')
+    st.markdown('### Professor Bei Wang-Phillips -- University of Utah')
 
-    descriptive_container.markdown('## How to Use This Workbench')
-    descriptive_container.markdown('''
+    st.markdown('## How to Use This Workbench')
+    st.markdown('''
         **Note:** If you are using this software with our default images (`tubingen.jpg` and `starry_night.jpg` -- see below)), you can simply 
         upload the images and run style transfer with the default parameters, as the UI is set up by default for optimal handling of hyperparameters 
         for these images.
     ''')
 
-    descriptive_container.markdown('### Step 1: Upload a Content and Style Image')
-    descriptive_container.markdown('''
+    st.markdown('### Step 1: Upload a Content and Style Image')
+    st.markdown('''
         You can upload any content and style image (**in JPG format**) you\'d like. Keep in mind that the content image is the "destination" image 
         and the style image is the "source" image.
     ''')
 
-    descriptive_container.markdown('### Step 2: Choose Image Sizes')
-    descriptive_container.markdown('''
+    st.markdown('### Step 2: Choose Image Sizes')
+    st.markdown('''
         The image size is the smallest dimension of the image. For example, if you want to use the image `tubingen.jpg` as the content image,
         you can choose the image size to be the smallest dimension of the image (e.g. `192`). This will ensure that the content loss is minimized. 
         If you choose a larger image size, the style transfer will take longer to run, but the resulting image will be more detailed.
     ''')
 
-    descriptive_container.markdown('### Step 3: Select Style Layers and Weights')
-    descriptive_container.markdown('''
+    st.markdown('### Step 3: Select Style Layers and Weights')
+    st.markdown('''
         Specify a list of which layers to use for style loss. Each layer corresponds to the respective feature as in the summary [here](#squeezenet-feature-summary).
         Each layer is assigned an inputted weight, which is used to calculate the style loss for the respective layer. We generally use higher weights for 
         the earlier style layers because they describe more local/smaller scale features, which are more important to texture than features over larger 
@@ -674,32 +673,32 @@ def main():
         the appearance of the style image.
     ''')
 
-    descriptive_container.markdown('### Step 4: Select Content Layer')
-    descriptive_container.markdown('''
+    st.markdown('### Step 4: Select Content Layer')
+    st.markdown('''
         Specify a layer you want to use for content loss. Each layer corresponds to the respective feature as in the summary [here](#squeezenet-feature-summary).
         The layer is assigned an inputted weight, which is used to calculate the content loss for the respective layer. Increasing the value of this parameter 
         will make the final image look more realistic (closer to the original content).
     ''')
 
-    descriptive_container.markdown('### Step 5: Select Number of Epochs')
-    descriptive_container.markdown('Select the number of epochs you want to run style transfer for. Higher epoch counts will take longer to run, but the resulting image will be more detailed.')
+    st.markdown('### Step 5: Select Number of Epochs')
+    st.markdown('Select the number of epochs you want to run style transfer for. Higher epoch counts will take longer to run, but the resulting image will be more detailed.')
 
-    descriptive_container.markdown('### Step 6: Select Total Variation Weight')
-    descriptive_container.markdown('''
+    st.markdown('### Step 6: Select Total Variation Weight')
+    st.markdown('''
         Specify the total variation regularization weight in the overall loss function. Increasing this value makes the resulting image look smoother and less jagged, 
         at the cost of lower fidelity to style and content.
     ''')
 
-    descriptive_container.markdown('### Step 7: Select Learning Rate Hyperparameters')
-    descriptive_container.markdown('''
+    st.markdown('### Step 7: Select Learning Rate Hyperparameters')
+    st.markdown('''
         Specify learning rate hyperparameters for the optimizer. They are defined as such:
         - `initial_lr`: The learning rate for the optimizer
         - `decay_lr_at`: The epoch # at which to decay the learning rate to `decayed_lr` (by default, this is 90 percent of the total epoch count specified)
         - `decayed_lr`: The decayed learning rate for the optimizer (after `decay_lr_at` epochs)
     ''')
 
-    descriptive_container.markdown('### Step 8: Select Observing Intermediate Results')
-    descriptive_container.markdown('''
+    st.markdown('### Step 8: Select Observing Intermediate Results')
+    st.markdown('''
         Specify details of observing intermediate results. This workbench supports the following specifications:
         - *Epoch Frequency for Observing Intermediate Results.* This defines how often the workbench will output intermediate resultant images and activation maps.
         - *Intermediate Layers to Visualize.* This defines which layers to visualize for each intermediate result.
@@ -718,40 +717,39 @@ def main():
         - *Random Initialization.* This defines whether to use random noise or the content image as an initial image.
     ''')
 
-    descriptive_container.markdown('### Step 9: Run Style Transfer')
-    descriptive_container.markdown('''
+    st.markdown('### Step 9: Run Style Transfer')
+    st.markdown('''
         From here, you can run style transfer! The output as you have specified it will be written to the content display of this workbench.
         You can download individual outputs by right-clicking on the image and saving it.
     ''')
 
-    descriptive_container.markdown('## Project Introduction')
+    st.markdown('## Project Introduction')
     
-    descriptive_container.markdown('### Background and Motivation')
-    descriptive_container.markdown('''
+    st.markdown('### Background and Motivation')
+    st.markdown('''
         - Artificial Neural Networks are increasingly prevalent in analytic solutions for many industries
         - Understanding their “decision making process” is a key factor in the adoption of this technology
         - Visual interpretation of their operation constitutes a big step in this direction
         - The “style transfer” use case for convolutional neural nets (CNNs) is visually compelling and germane for manufacturing defect inspection applications
     ''')
 
-    descriptive_container.markdown('### Convolutional Neural Net (CNN) Basics')
-    descriptive_container.markdown('''
-        Convolutional neural nets consists of some `n` layers, where each layer is one of the following types:
+    st.markdown('### Convolutional Neural Net (CNN) Basics')
+    st.markdown('''
+        [Convolutional neural nets](https://towardsdatascience.com/simple-introduction-to-convolutional-neural-networks-cdf8d3077bac) consist of some `n` layers, where each layer is one of the following types:
 
-        - `convolution + ReLU`
-        - `max pooling`
-        - `fully connected + ReLU`
-        - `softmax`
+        - `convolution + ReLU`: Where filters are applied to the original image (this is the crux of the problem).
+        - `pooling`: Used to reduce the dimensionality of the network. increases the number of channels to compensate
+        - `fully connected + ReLU`: Used to flatten channels of results before classification
+        - `softmax`: The final "classification" layer
 
-        `softmax` represents the final layer, which captures the highest-level detail for that layer. `max pooling` layers "compress" the image, increasing
-        the number of channels while decreasing the resolution of the image (thus transitioning to higher-level details).
+        Below is an image of an exemplary CNN.
     ''')
-    descriptive_container.image('./assets/descriptive-imgs/other/cnn-basics.png', caption='Basics of a CNN')
-    descriptive_container.markdown('The below image shows intermediate activation maps of VGG-16, a neural net trained for image recognition, which shows a similar low-to-high level of feature extraction from lower to higher layers (ending with a linearly separable classifier).')
-    descriptive_container.image('./assets/descriptive-imgs/other/vgg-16.png', caption='VGG-16 Intermediate Activation Maps')
+    st.image('./assets/descriptive-imgs/other/cnn-basics.png', caption='Basics of a CNN')
+    st.markdown('The below image shows intermediate activation maps of VGG-16, a neural net trained for image recognition, which shows a similar low-to-high level of feature extraction from lower to higher layers (ending with a linearly separable classifier).')
+    st.image('./assets/descriptive-imgs/other/vgg-16.png', caption='VGG-16 Intermediate Activation Maps')
 
-    descriptive_container.markdown('### Style Transfer Use Case')
-    descriptive_container.markdown('''
+    st.markdown('### Style Transfer Use Case')
+    st.markdown('''
         Below we see the behavior and use case of style transfer. Style Transfer is a technique for transferring style from one image to another.
         For instance, with a neural net trained for style transferral, we can transpose the style of *Starry Night* by Van Gogh to a picture of
         architecture in Tubingen, Germany. [SqueezeNet](https://arxiv.org/abs/1602.07360) is one such neural net trained for style transferral, and it consists of 13 layers, where some
@@ -760,161 +758,167 @@ def main():
         The structure is defined below:
     ''')
 
-    descriptive_container.markdown('### SqueezeNet Feature Summary')
-    descriptive_container.code('''
-    Sequential(
-        (0): Conv2d(3, 64, kernel_size=(3, 3), stride=(2, 2))
-        (1): ReLU(inplace=True)
-        (2): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
-        (3): Fire(
-            (squeeze): Conv2d(64, 16, kernel_size=(1, 1), stride=(1, 1))
-            (squeeze_activation): ReLU(inplace=True)
-            (expand1x1): Conv2d(16, 64, kernel_size=(1, 1), stride=(1, 1))
-            (expand1x1_activation): ReLU(inplace=True)
-            (expand3x3): Conv2d(16, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-            (expand3x3_activation): ReLU(inplace=True)
-        )
-        (4): Fire(
-            (squeeze): Conv2d(128, 16, kernel_size=(1, 1), stride=(1, 1))
-            (squeeze_activation): ReLU(inplace=True)
-            (expand1x1): Conv2d(16, 64, kernel_size=(1, 1), stride=(1, 1))
-            (expand1x1_activation): ReLU(inplace=True)
-            (expand3x3): Conv2d(16, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-            (expand3x3_activation): ReLU(inplace=True)
-        )
-        (5): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
-        (6): Fire(
-            (squeeze): Conv2d(128, 32, kernel_size=(1, 1), stride=(1, 1))
-            (squeeze_activation): ReLU(inplace=True)
-            (expand1x1): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1))
-            (expand1x1_activation): ReLU(inplace=True)
-            (expand3x3): Conv2d(32, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-            (expand3x3_activation): ReLU(inplace=True)
-        )
-        (7): Fire(
-            (squeeze): Conv2d(256, 32, kernel_size=(1, 1), stride=(1, 1))
-            (squeeze_activation): ReLU(inplace=True)
-            (expand1x1): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1))
-            (expand1x1_activation): ReLU(inplace=True)
-            (expand3x3): Conv2d(32, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-            (expand3x3_activation): ReLU(inplace=True)
-        )
-        (8): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
-        (9): Fire(
-            (squeeze): Conv2d(256, 48, kernel_size=(1, 1), stride=(1, 1))
-            (squeeze_activation): ReLU(inplace=True)
-            (expand1x1): Conv2d(48, 192, kernel_size=(1, 1), stride=(1, 1))
-            (expand1x1_activation): ReLU(inplace=True)
-            (expand3x3): Conv2d(48, 192, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-            (expand3x3_activation): ReLU(inplace=True)
-        )
-        (10): Fire(
-            (squeeze): Conv2d(384, 48, kernel_size=(1, 1), stride=(1, 1))
-            (squeeze_activation): ReLU(inplace=True)
-            (expand1x1): Conv2d(48, 192, kernel_size=(1, 1), stride=(1, 1))
-            (expand1x1_activation): ReLU(inplace=True)
-            (expand3x3): Conv2d(48, 192, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-            (expand3x3_activation): ReLU(inplace=True)
-        )
-        (11): Fire(
-            (squeeze): Conv2d(384, 64, kernel_size=(1, 1), stride=(1, 1))
-            (squeeze_activation): ReLU(inplace=True)
-            (expand1x1): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1))
-            (expand1x1_activation): ReLU(inplace=True)
-            (expand3x3): Conv2d(64, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-            (expand3x3_activation): ReLU(inplace=True)
-        )
-        (12): Fire(
-            (squeeze): Conv2d(512, 64, kernel_size=(1, 1), stride=(1, 1))
-            (squeeze_activation): ReLU(inplace=True)
-            (expand1x1): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1))
-            (expand1x1_activation): ReLU(inplace=True)
-            (expand3x3): Conv2d(64, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-            (expand3x3_activation): ReLU(inplace=True)
-        )
+    st.markdown('### SqueezeNet Feature Summary')
+    st.code('''
+Sequential(
+    (0): Conv2d(3, 64, kernel_size=(3, 3), stride=(2, 2))
+    (1): ReLU(inplace=True)
+    (2): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
+    (3): Fire(
+        (squeeze): Conv2d(64, 16, kernel_size=(1, 1), stride=(1, 1))
+        (squeeze_activation): ReLU(inplace=True)
+        (expand1x1): Conv2d(16, 64, kernel_size=(1, 1), stride=(1, 1))
+        (expand1x1_activation): ReLU(inplace=True)
+        (expand3x3): Conv2d(16, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (expand3x3_activation): ReLU(inplace=True)
     )
+    (4): Fire(
+        (squeeze): Conv2d(128, 16, kernel_size=(1, 1), stride=(1, 1))
+        (squeeze_activation): ReLU(inplace=True)
+        (expand1x1): Conv2d(16, 64, kernel_size=(1, 1), stride=(1, 1))
+        (expand1x1_activation): ReLU(inplace=True)
+        (expand3x3): Conv2d(16, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (expand3x3_activation): ReLU(inplace=True)
+    )
+    (5): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
+    (6): Fire(
+        (squeeze): Conv2d(128, 32, kernel_size=(1, 1), stride=(1, 1))
+        (squeeze_activation): ReLU(inplace=True)
+        (expand1x1): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1))
+        (expand1x1_activation): ReLU(inplace=True)
+        (expand3x3): Conv2d(32, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (expand3x3_activation): ReLU(inplace=True)
+    )
+    (7): Fire(
+        (squeeze): Conv2d(256, 32, kernel_size=(1, 1), stride=(1, 1))
+        (squeeze_activation): ReLU(inplace=True)
+        (expand1x1): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1))
+        (expand1x1_activation): ReLU(inplace=True)
+        (expand3x3): Conv2d(32, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (expand3x3_activation): ReLU(inplace=True)
+    )
+    (8): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
+    (9): Fire(
+        (squeeze): Conv2d(256, 48, kernel_size=(1, 1), stride=(1, 1))
+        (squeeze_activation): ReLU(inplace=True)
+        (expand1x1): Conv2d(48, 192, kernel_size=(1, 1), stride=(1, 1))
+        (expand1x1_activation): ReLU(inplace=True)
+        (expand3x3): Conv2d(48, 192, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (expand3x3_activation): ReLU(inplace=True)
+    )
+    (10): Fire(
+        (squeeze): Conv2d(384, 48, kernel_size=(1, 1), stride=(1, 1))
+        (squeeze_activation): ReLU(inplace=True)
+        (expand1x1): Conv2d(48, 192, kernel_size=(1, 1), stride=(1, 1))
+        (expand1x1_activation): ReLU(inplace=True)
+        (expand3x3): Conv2d(48, 192, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (expand3x3_activation): ReLU(inplace=True)
+    )
+    (11): Fire(
+        (squeeze): Conv2d(384, 64, kernel_size=(1, 1), stride=(1, 1))
+        (squeeze_activation): ReLU(inplace=True)
+        (expand1x1): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1))
+        (expand1x1_activation): ReLU(inplace=True)
+        (expand3x3): Conv2d(64, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (expand3x3_activation): ReLU(inplace=True)
+    )
+    (12): Fire(
+        (squeeze): Conv2d(512, 64, kernel_size=(1, 1), stride=(1, 1))
+        (squeeze_activation): ReLU(inplace=True)
+        (expand1x1): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1))
+        (expand1x1_activation): ReLU(inplace=True)
+        (expand3x3): Conv2d(64, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (expand3x3_activation): ReLU(inplace=True)
+    )
+)
     ''')
-    descriptive_container.markdown('''
+    st.markdown('''
         Fire modules are illustrated in better detail below:
     ''')
-    descriptive_container.image('./assets/descriptive-imgs/other/fire.png', caption='An Illustration of a Fire Module')
+    st.image('./assets/descriptive-imgs/other/fire.png', caption='An Illustration of a Fire Module')
 
-    descriptive_container.markdown('## Feature Visualization')
-    descriptive_container.markdown('''
+    st.markdown('## Feature Visualization')
+    st.markdown('''
         - SqueezeNet has 13 different layers and each layer generates an output of a different number of channels (multiple of 16)
         - Features (activation vector for each layer) are represented as tensors
         - To visualize the features of intermediate layers, we capture 16 different channels of the output of every layer depending on an epoch factor selected by a user
         - We experimented with different colormaps including spectral, greyscale, jet, and rainbow
         - We chose spectral because it had a good proportion of Red, Green and Blue values especially for individual pixels in the last few layers
     ''')
-    descriptive_container.markdown('''
+    st.markdown('''
         To test intermediate visualization, we used the following content and style image:
     ''')
 
     col1, col2 = st.columns(2)
 
     with col1:
-        descriptive_container.image('./assets/input-imgs/tubingen.jpg', caption='A picture of architecture Tubingen, Germany, used as the content image')
+        st.image('./assets/input-imgs/tubingen.jpg', caption='A picture of architecture Tubingen, Germany, used as the content image')
     with col2:
-        descriptive_container.image('./assets/input-imgs/starry_night.jpg', caption='A picture of Starry Night by Van Gogh, used as the style image')
+        st.image('./assets/input-imgs/starry_night.jpg', caption='A picture of Starry Night by Van Gogh, used as the style image')
 
-    descriptive_container.markdown('''
+    st.markdown('''
         With these input images, we are able to utilize this playground interface to generate intermediate composite images *and* intermediate activation maps of SqueezeNet as ran on them.
         We used the following parameters to generate the intermediate composite images and activation maps:
     ''')
 
-    descriptive_container.code('''
-    {
-        'content_img': './assets/input-imgs/tubingen.jpg',
-        'style_img': './assets/input-imgs/starry_night.jpg',
-        'content_size': 192,
-        'style_size': 192,
-        'style_layers': [1, 4, 6, 7],
-        'content_layer': 3,
-        'style_weights': [300000, 1000, 15, 3],
-        'content_weight': 0.06,
-        'tv_weight': 0.02,
-        'num_epochs': 200,
-        'init_random': False,
-        'observe_intermediate_result_count': 5,
-        'decay_lr_at': 180,
-        'decayed_lr': 0.1,
-        'initial_lr': 3.0,
-        'layer_vis_choices': [i for i in range(available_layers)],
-        'channel_vis_choice': 'first_16',
-        'color_mapping': 'nipy_spectral'
-    }
+    st.code('''
+{
+    'content_img': './assets/input-imgs/tubingen.jpg',
+    'style_img': './assets/input-imgs/starry_night.jpg',
+    'content_size': 192,
+    'style_size': 192,
+    'style_layers': [1, 4, 6, 7],
+    'content_layer': 3,
+    'style_weights': [300000, 1000, 15, 3],
+    'content_weight': 0.06,
+    'tv_weight': 0.02,
+    'num_epochs': 200,
+    'init_random': False,
+    'observe_intermediate_result_count': 5,
+    'decay_lr_at': 180,
+    'decayed_lr': 0.1,
+    'initial_lr': 3.0,
+    'layer_vis_choices': [i for i in range(available_layers)],
+    'channel_vis_choice': 'first_16',
+    'color_mapping': 'nipy_spectral'
+}
     ''', language='python')
 
-    descriptive_container.markdown('Using these hyperparameters, intermediate composite images and activation maps for epochs 0, 100, and 195 (layers 0, 6, and 12 for activation maps) are shown below:')
+    st.markdown('Using these hyperparameters, intermediate composite images and activation maps for epochs 0, 100, and 195 (layers 0, 6, and 12 for activation maps) are shown below:')
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        descriptive_container.image('./assets/descriptive-imgs/composite-imgs/image_epoch0.jpeg', caption='An Intermediate Composite Image at Epoch 0')
+        st.image('./assets/descriptive-imgs/composite-imgs/image_epoch0.jpeg', caption='An Intermediate Composite Image at Epoch 0')
     with col2:
-        descriptive_container.image('./assets/descriptive-imgs/composite-imgs/image_epoch100.jpeg', caption='An Intermediate Composite Image at Epoch 100')
+        st.image('./assets/descriptive-imgs/composite-imgs/image_epoch100.jpeg', caption='An Intermediate Composite Image at Epoch 100')
     with col3:
-        descriptive_container.image('./assets/descriptive-imgs/composite-imgs/image_epoch195.jpeg', caption='An Intermediate Composite Image at Epoch 195')
+        st.image('./assets/descriptive-imgs/composite-imgs/image_epoch195.jpeg', caption='An Intermediate Composite Image at Epoch 195')
+
+    st.markdown('**Activation Maps at Epoch 0:**')
     
-    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer0.png', caption='An Intermediate Activation Map at Epoch 0, Layer 0')
-    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer6.png', caption='An Intermediate Activation Map at Epoch 0, Layer 6')
-    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer12.png', caption='An Intermediate Activation Map at Epoch 0, Layer 12')
+    st.image('./assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer0.png', caption='An Intermediate Activation Map at Epoch 0, Layer 0')
+    st.image('./assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer6.png', caption='An Intermediate Activation Map at Epoch 0, Layer 6')
+    st.image('./assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer12.png', caption='An Intermediate Activation Map at Epoch 0, Layer 12')
 
-    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer0.png', caption='An Intermediate Activation Map at Epoch 100, Layer 0')
-    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer6.png', caption='An Intermediate Activation Map at Epoch 100, Layer 6')
-    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer12.png', caption='An Intermediate Activation Map at Epoch 100, Layer 12')
+    st.markdown('**Activation Maps at Epoch 100L**')
 
-    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch195/activation_maps_epoch195_layer0.png', caption='An Intermediate Activation Map at Epoch 195, Layer 0')
-    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch195/activation_maps_epoch195_layer6.png', caption='An Intermediate Activation Map at Epoch 195, Layer 6')
-    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch195/activation_maps_epoch195_layer12.png', caption='An Intermediate Activation Map at Epoch 195, Layer 12')
+    st.image('./assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer0.png', caption='An Intermediate Activation Map at Epoch 100, Layer 0')
+    st.image('./assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer6.png', caption='An Intermediate Activation Map at Epoch 100, Layer 6')
+    st.image('./assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer12.png', caption='An Intermediate Activation Map at Epoch 100, Layer 12')
 
-    descriptive_container.markdown('The final image is shown below.')
+    st.markdown('**Activation Maps at Epoch 195:**')
 
-    descriptive_container.image('./assets/descriptive-imgs/composite-imgs/final_img.jpeg', caption='The Final Composite Image')
+    st.image('./assets/descriptive-imgs/activation-maps/epoch195/activation_maps_epoch195_layer0.png', caption='An Intermediate Activation Map at Epoch 195, Layer 0')
+    st.image('./assets/descriptive-imgs/activation-maps/epoch195/activation_maps_epoch195_layer6.png', caption='An Intermediate Activation Map at Epoch 195, Layer 6')
+    st.image('./assets/descriptive-imgs/activation-maps/epoch195/activation_maps_epoch195_layer12.png', caption='An Intermediate Activation Map at Epoch 195, Layer 12')
 
-    descriptive_container.markdown('## Try it out!')
-    descriptive_container.markdown('''
+    st.markdown('The final image is shown below.')
+
+    st.image('./assets/descriptive-imgs/composite-imgs/final_img.jpeg', caption='The Final Composite Image')
+
+    st.markdown('## Try it out!')
+    st.markdown('''
         To try out this playground, you can input your own images and hyperparameters using the sidebar on the left, or you can simply click the button below to use
         the default images and hyperparameters as defined below:
         - Content Image: Tubingen, Germany (`'tubingen.jpg'`)
@@ -937,7 +941,7 @@ def main():
         - Colormap: Spectral
     ''')
 
-    descriptive_container.button(
+    st.button(
         'Run Playground with Default Images and Hyperparameters', 
         on_click=lambda: style_transfer, 
         kwargs={
@@ -950,13 +954,11 @@ def main():
 
     st.sidebar.markdown('''
     - [How to Use this Workbench](#how-to-use-this-workbench)
+        - []
     - [Project Introduction](#project-introduction)
     - [Feature Visualization](#feature-visualization)
     - [Try it Out!](#try-it-out)
     ''')
-
-    st.sidebar.help(style_transfer)
-
     # Sidebar
     st.sidebar.title('Hyperparameter Selection')
 
