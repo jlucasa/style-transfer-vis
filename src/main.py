@@ -645,7 +645,7 @@ def main():
     descriptive_container.markdown('## CS 6965: Advanced Data Visualization -- Fall 2021')
     descriptive_container.markdown('### Professor Bei Wang-Phillips -- University of Utah')
 
-    descriptive_container.markdown('## How to Use This Software')
+    descriptive_container.markdown('## How to Use This Workbench')
     descriptive_container.markdown('''
         **Note:** If you are using this software with our default images (`tubingen.jpg` and `starry_night.jpg` -- see below)), you can simply 
         upload the images and run style transfer with the default parameters, as the UI is set up by default for optimal handling of hyperparameters 
@@ -945,6 +945,17 @@ def main():
             'style_img': './assets/input-imgs/starry_night.jpg'
         }
     )
+
+    st.sidebar.title('Table of Contents')
+
+    st.sidebar.markdown('''
+    - [How to Use this Workbench](#how-to-use-this-workbench)
+    - [Project Introduction](#project-introduction)
+    - [Feature Visualization](#feature-visualization)
+    - [Try it Out!](#try-it-out)
+    ''')
+
+    st.sidebar.help(style_transfer)
 
     # Sidebar
     st.sidebar.title('Hyperparameter Selection')
