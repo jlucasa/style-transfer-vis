@@ -405,6 +405,9 @@ def layer_vis(
 
             if col % 8 == 0 and col != 0:
                 row += 1
+
+            print(f'row={row}')
+            print(f'col={col}')
             
             axes[row, col % 8].axis('off')
             axes[row, col % 8].imshow(filter, cmap=color_mapping)
