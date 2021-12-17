@@ -57,22 +57,26 @@ CHANNEL_BREAK_MAP = {
     'first_16': {
         'func': lambda i, num_channels: i == 16,
         'should_continue': False,
-        'num_rows': 2
+        'num_rows': 2,
+        'num_cols': lambda num_channels: 8
     },
     'last_16': {
         'func': lambda i, num_channels: i < num_channels - 16,
         'should_continue': True,
-        'num_rows': 2
+        'num_rows': 2,
+        'num_cols': lambda num_channels: 8
     },
     'first_32': {
         'func': lambda i, num_channels: i == 32,
         'should_continue': False,
-        'num_rows': 4
+        'num_rows': 4,
+        'num_cols': lambda num_channels: 8
     },
     'last_32': {
         'func': lambda i, num_channels: i < num_channels - 32,
         'should_continue': True,
-        'num_rows': 4
+        'num_rows': 4,
+        'num_cols': lambda num_channels: 8
     },
     # 'every_other': {
     #     'func': lambda i, num_channels: i % 2 == 0,
@@ -87,12 +91,14 @@ CHANNEL_BREAK_MAP = {
     'every_eighth': {
         'func': lambda i, num_channels: i % 8 != 0,
         'should_continue': True,
-        'num_rows': -64
+        'num_rows': -64,
+        'num_cols': lambda num_channels: 8 if num_channels > 64 else 4
     },
     'every_sixteenth': {
         'func': lambda i, num_channels: i % 16 != 0,
         'should_continue': True,
-        'num_rows': -128
+        'num_rows': -128,
+        'num_cols': lambda num_channels: 8 if num_channels > 64 else 4
     }
 }
 
@@ -367,7 +373,8 @@ def layer_vis(
     feats_choices, 
     channel_break_condition, 
     should_continue_on_channels, 
-    num_rows, 
+    num_rows,
+    num_cols,
     color_mapping
 ):
     '''
@@ -381,6 +388,7 @@ def layer_vis(
     - channel_break_condition: The lambda function at which output for the layer should either break or continue (see CHANNEL_BREAK_MAP)
     - should_continue_on_channels: Whether the output for the layer should break or continue (see CHANNEL_BREAK_MAP)
     - num_rows: Hard-coded number of rows for the MPL figure, based on the channel vis selection (see CHANNEL_BREAK_MAP)
+    - num_cols: Lambda function for number of cols of the MPL figure, based on channel vis selection (see CHANNEL_BREAK_MAP)
     - color_mapping: A list of color mappings.
     '''
     activation_container = output_container.expander(f'Activation Maps for Epoch {num_epoch}')
@@ -388,7 +396,7 @@ def layer_vis(
 
     for num_layer in feats_choices:
         num_channels = len(feats[num_layer][0, :])
-        fig, axes = plt.subplots(num_rows if num_rows > 0 else max(num_channels // -num_rows, 1), 8, figsize=(50, 10), squeeze=False)  
+        fig, axes = plt.subplots(num_rows if num_rows > 0 else max(num_channels // -num_rows, 1), num_cols(num_channels), figsize=(60, 20), squeeze=False)  
 
         fig.suptitle(f'Activation Maps for Layer {num_layer}', fontsize=36)
 
@@ -405,10 +413,6 @@ def layer_vis(
 
             if col % 8 == 0 and col != 0:
                 row += 1
-
-            print(f'row={row}')
-            print(f'col={col}')
-            print(f'\ni={i}')
 
             axes[row, col % 8].axis('off')
             axes[row, col % 8].imshow(filter, cmap=color_mapping)
@@ -562,7 +566,8 @@ def style_transfer(
                     layer_vis_choices, 
                     CHANNEL_BREAK_MAP[channel_vis_choice]['func'], 
                     CHANNEL_BREAK_MAP[channel_vis_choice]['should_continue'],
-                    CHANNEL_BREAK_MAP[channel_vis_choice]['num_rows'], 
+                    CHANNEL_BREAK_MAP[channel_vis_choice]['num_rows'],
+                    CHANNEL_BREAK_MAP[channel_vis_choice]['num_cols'],
                     color_mapping
                 )
                 # st.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
