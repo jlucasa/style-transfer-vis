@@ -53,42 +53,42 @@ WEIGHTS_MAP = {
 
 CHANNEL_BREAK_MAP = {
     'first_16': {
-        'func': lambda i: i == 16,
+        'func': lambda i, num_channels: i == 16,
         'should_continue': False,
         'num_rows': 2
     },
     'last_16': {
-        'func': lambda i, channel_length: i == channel_length - 16,
-        'should_continue': False,
+        'func': lambda i, num_channels: i < num_channels - 16,
+        'should_continue': True,
         'num_rows': 2
     },
     'first_32': {
-        'func': lambda i: i == 32,
+        'func': lambda i, num_channels: i == 32,
         'should_continue': False,
         'num_rows': 4
     },
     'last_32': {
-        'func': lambda i, channel_length: i == channel_length - 32,
-        'should_continue': False,
+        'func': lambda i, num_channels: i < num_channels - 32,
+        'should_continue': True,
         'num_rows': 4
     },
     'every_other': {
-        'func': lambda i: i % 2 == 0,
+        'func': lambda i, num_channels: i % 2 == 0,
         'should_continue': True,
         'num_rows': lambda num_channels: max(num_channels // 8, 1)
     },
     'every_first': {
-        'func': lambda i: i % 2 == 1,
+        'func': lambda i, num_channels: i % 2 == 1,
         'should_continue': True,
         'num_rows': lambda num_channels: max(num_channels // 8, 1)
     },
     'every_eighth': {
-        'func': lambda i: i % 8 == 0,
+        'func': lambda i, num_channels: i % 8 == 0,
         'should_continue': True,
         'num_rows': lambda num_channels: max(num_channels // 64, 1)
     },
     'every_sixteenth': {
-        'func': lambda i: i % 16 == 0,
+        'func': lambda i, num_channels: i % 16 == 0,
         'should_continue': True,
         'num_rows': lambda num_channels: max(num_channels // 128, 1)
     }
@@ -324,7 +324,16 @@ def download_all_figs_button(figs, epoch, activation_container):
     activation_container.download_button('Download activation maps', zip_file_name, mime='application/zip')
 
 
-def layer_vis(feats, num_epoch, output_container, feats_choices, channel_break_condition, should_continue_on_channels, num_rows, color_mapping):
+def layer_vis(
+    feats, 
+    num_epoch, 
+    output_container, 
+    feats_choices, 
+    channel_break_condition, 
+    should_continue_on_channels, 
+    num_rows, 
+    color_mapping
+):
     '''
     Visualize intermediate layers using Matplotlib. By default,
     visualizes the first 16 channels of each layer.
@@ -333,12 +342,16 @@ def layer_vis(feats, num_epoch, output_container, feats_choices, channel_break_c
     - feats: A list of features from extract_features().
     - num_epoch: The epoch number.
     - output_container: The Streamlit container to output activation maps to.
+    - channel_break_condition: The lambda function at which output for the layer should either break or continue (see CHANNEL_BREAK_MAP)
+    - should_continue_on_channels: Whether the output for the layer should break or continue (see CHANNEL_BREAK_MAP)
+    - num_rows: Hard-coded number of rows for the MPL figure, based on the channel vis selection (see CHANNEL_BREAK_MAP)
     - color_mapping: A list of color mappings.
     '''
     activation_container = output_container.expander(f'Activation Maps for Epoch {num_epoch}')
     figs = []
 
     for num_layer in feats_choices:
+        num_channels = len(feats[num_layer][0, :])
         fig, axes = plt.subplots(num_rows, 8, figsize=(50, 10))
         fig.suptitle(f'Activation Maps for Layer {num_layer}', fontsize=36)
 
@@ -347,14 +360,14 @@ def layer_vis(feats, num_epoch, output_container, feats_choices, channel_break_c
         col = 0
         
         for i, filter in enumerate(layer_vis):
-            if channel_break_condition(i):
+            if channel_break_condition(i, num_channels):
                 print('channel break condition passes')
                 if should_continue_on_channels:
                     continue
                 else:
                     break
 
-            if col % 8 == 0:
+            if col % 8 == 0 and col != 0:
                 print('col divisible by 8')
                 row += 1
             
