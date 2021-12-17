@@ -480,9 +480,14 @@ def run_style_transfer(**args):
     - color_mapping: color mapping to use for generated image
     '''
 
+    if args['content_image'] is None:
+        args['content_image'] = PIL.Image.open('assets/tubingen.jpg')
+    
+    if args['style_image'] is None:
+        args['style_image'] = PIL.Image.open('assets/starry_night.jpg')
+
     for key in args:
-        if args[key] is None:
-            print(key)
+        if args[key] is None: 
             st.error(f'Missing fields: {[key for key in args if args[key] is None]}')
             st.error('Please fill in all fields')
             
@@ -548,77 +553,77 @@ def main():
         The structure is defined below:
     ''')
     descriptive_container.code('''
-        Sequential(
-            (0): Conv2d(3, 64, kernel_size=(3, 3), stride=(2, 2))
-            (1): ReLU(inplace=True)
-            (2): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
-            (3): Fire(
-                (squeeze): Conv2d(64, 16, kernel_size=(1, 1), stride=(1, 1))
-                (squeeze_activation): ReLU(inplace=True)
-                (expand1x1): Conv2d(16, 64, kernel_size=(1, 1), stride=(1, 1))
-                (expand1x1_activation): ReLU(inplace=True)
-                (expand3x3): Conv2d(16, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-                (expand3x3_activation): ReLU(inplace=True)
-            )
-            (4): Fire(
-                (squeeze): Conv2d(128, 16, kernel_size=(1, 1), stride=(1, 1))
-                (squeeze_activation): ReLU(inplace=True)
-                (expand1x1): Conv2d(16, 64, kernel_size=(1, 1), stride=(1, 1))
-                (expand1x1_activation): ReLU(inplace=True)
-                (expand3x3): Conv2d(16, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-                (expand3x3_activation): ReLU(inplace=True)
-            )
-            (5): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
-            (6): Fire(
-                (squeeze): Conv2d(128, 32, kernel_size=(1, 1), stride=(1, 1))
-                (squeeze_activation): ReLU(inplace=True)
-                (expand1x1): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1))
-                (expand1x1_activation): ReLU(inplace=True)
-                (expand3x3): Conv2d(32, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-                (expand3x3_activation): ReLU(inplace=True)
-            )
-            (7): Fire(
-                (squeeze): Conv2d(256, 32, kernel_size=(1, 1), stride=(1, 1))
-                (squeeze_activation): ReLU(inplace=True)
-                (expand1x1): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1))
-                (expand1x1_activation): ReLU(inplace=True)
-                (expand3x3): Conv2d(32, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-                (expand3x3_activation): ReLU(inplace=True)
-            )
-            (8): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
-            (9): Fire(
-                (squeeze): Conv2d(256, 48, kernel_size=(1, 1), stride=(1, 1))
-                (squeeze_activation): ReLU(inplace=True)
-                (expand1x1): Conv2d(48, 192, kernel_size=(1, 1), stride=(1, 1))
-                (expand1x1_activation): ReLU(inplace=True)
-                (expand3x3): Conv2d(48, 192, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-                (expand3x3_activation): ReLU(inplace=True)
-            )
-            (10): Fire(
-                (squeeze): Conv2d(384, 48, kernel_size=(1, 1), stride=(1, 1))
-                (squeeze_activation): ReLU(inplace=True)
-                (expand1x1): Conv2d(48, 192, kernel_size=(1, 1), stride=(1, 1))
-                (expand1x1_activation): ReLU(inplace=True)
-                (expand3x3): Conv2d(48, 192, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-                (expand3x3_activation): ReLU(inplace=True)
-            )
-            (11): Fire(
-                (squeeze): Conv2d(384, 64, kernel_size=(1, 1), stride=(1, 1))
-                (squeeze_activation): ReLU(inplace=True)
-                (expand1x1): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1))
-                (expand1x1_activation): ReLU(inplace=True)
-                (expand3x3): Conv2d(64, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-                (expand3x3_activation): ReLU(inplace=True)
-            )
-            (12): Fire(
-                (squeeze): Conv2d(512, 64, kernel_size=(1, 1), stride=(1, 1))
-                (squeeze_activation): ReLU(inplace=True)
-                (expand1x1): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1))
-                (expand1x1_activation): ReLU(inplace=True)
-                (expand3x3): Conv2d(64, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-                (expand3x3_activation): ReLU(inplace=True)
-            )
+    Sequential(
+        (0): Conv2d(3, 64, kernel_size=(3, 3), stride=(2, 2))
+        (1): ReLU(inplace=True)
+        (2): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
+        (3): Fire(
+            (squeeze): Conv2d(64, 16, kernel_size=(1, 1), stride=(1, 1))
+            (squeeze_activation): ReLU(inplace=True)
+            (expand1x1): Conv2d(16, 64, kernel_size=(1, 1), stride=(1, 1))
+            (expand1x1_activation): ReLU(inplace=True)
+            (expand3x3): Conv2d(16, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+            (expand3x3_activation): ReLU(inplace=True)
         )
+        (4): Fire(
+            (squeeze): Conv2d(128, 16, kernel_size=(1, 1), stride=(1, 1))
+            (squeeze_activation): ReLU(inplace=True)
+            (expand1x1): Conv2d(16, 64, kernel_size=(1, 1), stride=(1, 1))
+            (expand1x1_activation): ReLU(inplace=True)
+            (expand3x3): Conv2d(16, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+            (expand3x3_activation): ReLU(inplace=True)
+        )
+        (5): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
+        (6): Fire(
+            (squeeze): Conv2d(128, 32, kernel_size=(1, 1), stride=(1, 1))
+            (squeeze_activation): ReLU(inplace=True)
+            (expand1x1): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1))
+            (expand1x1_activation): ReLU(inplace=True)
+            (expand3x3): Conv2d(32, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+            (expand3x3_activation): ReLU(inplace=True)
+        )
+        (7): Fire(
+            (squeeze): Conv2d(256, 32, kernel_size=(1, 1), stride=(1, 1))
+            (squeeze_activation): ReLU(inplace=True)
+            (expand1x1): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1))
+            (expand1x1_activation): ReLU(inplace=True)
+            (expand3x3): Conv2d(32, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+            (expand3x3_activation): ReLU(inplace=True)
+        )
+        (8): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
+        (9): Fire(
+            (squeeze): Conv2d(256, 48, kernel_size=(1, 1), stride=(1, 1))
+            (squeeze_activation): ReLU(inplace=True)
+            (expand1x1): Conv2d(48, 192, kernel_size=(1, 1), stride=(1, 1))
+            (expand1x1_activation): ReLU(inplace=True)
+            (expand3x3): Conv2d(48, 192, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+            (expand3x3_activation): ReLU(inplace=True)
+        )
+        (10): Fire(
+            (squeeze): Conv2d(384, 48, kernel_size=(1, 1), stride=(1, 1))
+            (squeeze_activation): ReLU(inplace=True)
+            (expand1x1): Conv2d(48, 192, kernel_size=(1, 1), stride=(1, 1))
+            (expand1x1_activation): ReLU(inplace=True)
+            (expand3x3): Conv2d(48, 192, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+            (expand3x3_activation): ReLU(inplace=True)
+        )
+        (11): Fire(
+            (squeeze): Conv2d(384, 64, kernel_size=(1, 1), stride=(1, 1))
+            (squeeze_activation): ReLU(inplace=True)
+            (expand1x1): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1))
+            (expand1x1_activation): ReLU(inplace=True)
+            (expand3x3): Conv2d(64, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+            (expand3x3_activation): ReLU(inplace=True)
+        )
+        (12): Fire(
+            (squeeze): Conv2d(512, 64, kernel_size=(1, 1), stride=(1, 1))
+            (squeeze_activation): ReLU(inplace=True)
+            (expand1x1): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1))
+            (expand1x1_activation): ReLU(inplace=True)
+            (expand3x3): Conv2d(64, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+            (expand3x3_activation): ReLU(inplace=True)
+        )
+    )
     ''')
     descriptive_container.markdown('''
         Fire modules are illustrated in better detail below:
@@ -660,14 +665,21 @@ def main():
     # Display Input Images
     col1, col2 = initial_imgs_container.columns(2)
 
+    initial_imgs_container.markdown('## Input Images')
+
     if content_img is not None:
-        initial_imgs_container.markdown('## Input Images')
         with col1:
             initial_imgs_container.image(content_img, caption='Content Image', use_column_width=True)
+    else:
+        with col1:
+            initial_imgs_container.image('./assets/tubingen.jpg', caption='Content Image', use_column_width=True)
 
     if style_img is not None:
         with col2:
             initial_imgs_container.image(style_img, caption='Style Image', use_column_width=True)
+    else:
+        with col2:
+            initial_imgs_container.image('./assets/starry_night.jpg', caption='Style Image', use_column_width=True)
 
     # Sidebar -- Upload Image Sizes
     st.sidebar.markdown('## Input Image Sizes')
