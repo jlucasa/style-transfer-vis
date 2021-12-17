@@ -480,11 +480,11 @@ def run_style_transfer(**args):
     - color_mapping: color mapping to use for generated image
     '''
 
-    if args['content_image'] is None:
-        args['content_image'] = PIL.Image.open('assets/tubingen.jpg')
+    if args['content_img'] is None:
+        args['content_img'] = PIL.Image.open('assets/tubingen.jpg')
     
-    if args['style_image'] is None:
-        args['style_image'] = PIL.Image.open('assets/starry_night.jpg')
+    if args['style_img'] is None:
+        args['style_img'] = PIL.Image.open('assets/starry_night.jpg')
 
     for key in args:
         if args[key] is None: 
