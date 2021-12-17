@@ -388,12 +388,13 @@ def layer_vis(
 
     for num_layer in feats_choices:
         num_channels = len(feats[num_layer][0, :])
-        num_rows_to_use = num_rows
+        num_rows_to_use = num_rows if num_rows > 0 else max(num_channels // -num_rows, 1)
 
-        if num_rows < 0:
-            num_rows_to_use = max(num_channels // -num_rows, 1)
+        if num_rows_to_use == 1:
+            fig, axes = plt.subplots(8, figsize=(50, 10))
+        else:
+            fig, axes = plt.subplots(num_rows_to_use, 8, figsize=(50, 10))  
 
-        fig, axes = plt.subplots(num_rows_to_use, 8, figsize=(50, 10))
         fig.suptitle(f'Activation Maps for Layer {num_layer}', fontsize=36)
 
         layer_vis = feats[num_layer][0, :, :, :].data.cpu()
@@ -407,12 +408,17 @@ def layer_vis(
                 else:
                     break
 
-            if col % 8 == 0 and col != 0:
-                row += 1
-            
-            axes[row, col % 8].axis('off')
-            axes[row, col % 8].imshow(filter, cmap=color_mapping)
-            axes[row, col % 8].title.set_text(f'Channel {i}')
+            if num_rows_to_use == 1:
+                axes[col % 8].axis('off')
+                axes[col % 8].imshow(filter, cmap=color_mapping)
+                axes[col % 8].title.set_text(f'Channel {i}')
+            else:
+                if col % 8 == 0 and col != 0:
+                    row += 1
+                
+                axes[row, col % 8].axis('off')
+                axes[row, col % 8].imshow(filter, cmap=color_mapping)
+                axes[row, col % 8].title.set_text(f'Channel {i}')
 
             col += 1
 
