@@ -29,6 +29,9 @@ import torchvision.transforms as T
 import PIL
 import numpy as np
 import matplotlib.pyplot as plt
+import re
+import zipfile
+import os
 
 # Supplementary constants for image/tensor conversion
 SQUEEZENET_MEAN = np.array([0.485, 0.456, 0.406])
@@ -45,6 +48,41 @@ WEIGHTS_MAP = {
     4: 1000,
     6: 15,
     7: 3
+}
+
+CHANNEL_BREAK_MAP = {
+    'first_16': {
+        'func': lambda i: i == 16,
+        'should_continue': False
+    },
+    'last_16': {
+        'func': lambda i, channel_length: i == channel_length - 16,
+        'should_continue': False
+    },
+    'first_32': {
+        'func': lambda i: i == 32,
+        'should_continue': False
+    },
+    'last_32': {
+        'func': lambda i, channel_length: i == channel_length - 32,
+        'should_continue': False
+    },
+    'every_other': {
+        'func': lambda i: i % 2 == 0,
+        'should_continue': True
+    },
+    'every_first': {
+        'func': lambda i: i % 2 == 1,
+        'should_continue': True
+    },
+    'every_eighth': {
+        'func': lambda i: i % 8 == 0,
+        'should_continue': True
+    },
+    'every_sixteenth': {
+        'func': lambda i: i % 16 == 0,
+        'should_continue': True
+    }
 }
 
 def preprocess_image(img, size=512):
@@ -266,12 +304,18 @@ def tv_loss(img, tv_weight):
 #         ax.set_cmap(cmap)
 
 
-def download_all_figs(figs, epoch):
-    for i, fig in enumerate(figs):
-        fig.savefig(f'activation_maps_{epoch}_{i}.png')
+def download_all_figs_button(figs, epoch, activation_container):
+    zip_file_name = f'figs_for_epoch_{epoch}.zip'
+    with zipfile.ZipFile(zip_file_name, 'w') as myzip:
+        for fig in figs:
+            fig.savefig(f'fig_{epoch}.png')
+            myzip.write(f'fig_{epoch}.png')
+            os.remove(f'fig_{epoch}.png')
+
+    activation_container.download_button('Download activation maps', zip_file_name, mime='application/zip')
 
 
-def layer_vis(feats, num_epoch, output_container, color_mapping):
+def layer_vis(feats, num_epoch, output_container, feats_choices, channel_break_condition, should_continue_on_channels, color_mapping):
     '''
     Visualize intermediate layers using Matplotlib. By default,
     visualizes the first 16 channels of each layer.
@@ -285,19 +329,22 @@ def layer_vis(feats, num_epoch, output_container, color_mapping):
     activation_container = output_container.expander(f'Activation Maps for Epoch {num_epoch}')
     figs = []
 
-    for num_layer in range(len(feats)):
-        fig, axes = plt.subplots(2, 8, figsize=(50, 10))
+    for num_layer in feats_choices:
+        fig, axes = plt.subplots(len(feats[num_layer][0, :]) / 8, 8, figsize=(50, 10))
         fig.suptitle(f'Activation Maps for Layer {num_layer}', fontsize=36)
 
         layer_vis = feats[num_layer][0, :, :, :].data.cpu()
         row = 0
         
         for i, filter in enumerate(layer_vis):
-            if i == 16:
-                break
-            
-            if i == 8:
-                row = 1
+            if channel_break_condition(i):
+                if should_continue_on_channels:
+                    continue
+                else:
+                    break
+
+            if i % 8 == 0:
+                row += 1
             
             axes[row, i % 8].axis('off')
             axes[row, i % 8].imshow(filter, cmap=color_mapping)
@@ -306,25 +353,27 @@ def layer_vis(feats, num_epoch, output_container, color_mapping):
         figs.append(fig)
         plt.close()
 
-    # activation_container.button('Download Activation Maps', on_click=download_all_figs, args=[figs, num_epoch])
+    download_all_figs_button(figs, num_epoch, activation_container)
 
 
 def style_transfer(
-    content_img, 
-    style_img, 
-    content_size, 
-    style_size,
-    style_layers, 
-    content_layer,
-    content_weight, 
-    style_weights,
-    tv_weight,
-    initial_lr,
-    decayed_lr,
-    decay_lr_at,
-    num_epochs=200,
+    content_img: str or st.UploadedFile, 
+    style_img: str or st.UploadedFile, 
+    content_size=192, 
+    style_size=192,
+    style_layers=[1, 4, 6, 7], 
+    content_layer=3,
+    content_weight=0.06, 
+    style_weights=[300000, 1000, 15, 3],
+    tv_weight=0.02,
+    initial_lr=3.0,
+    decayed_lr=0.10,
+    decay_lr_at=9,
+    layer_vis_choices=[i for i in range(len(CNN))],
+    channel_vis_choice='first_16',
+    num_epochs=10,
     init_random=False,
-    observe_intermediate_result_count=5,
+    observe_intermediate_result_count=2,
     color_mapping='nipy_spectral'
 ):
     '''
@@ -344,6 +393,8 @@ def style_transfer(
     - num_epochs: number of epochs to run
     - observe_intermediate_result_count: number of epochs to observe intermediate results
     - color_mapping: color mapping to use for generated image
+    - layer_vis_choices: list of layer choices to display activation maps for
+    - channel_vis_choice: channel criterion to use for activation map display (see CHANNEL_BREAK_MAP) 
     '''
 
     import time
@@ -439,19 +490,21 @@ def style_transfer(
                     activation_map_header.markdown('### Activation Maps')
                     display_activation_map_header = False
                     
-                layer_vis(feats, t, output_container, color_mapping)
+                layer_vis(
+                    feats, 
+                    t, 
+                    output_container,
+                    layer_vis_choices, 
+                    CHANNEL_BREAK_MAP[channel_vis_choice]['func'], 
+                    CHANNEL_BREAK_MAP[channel_vis_choice]['should_continue'], 
+                    color_mapping
+                )
                 # st.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
 
             info_message.info(f'Epoch {t} completed. Total elapsed time: {round(time.time() - epoch_start_time, 2)}s')
 
         output_container.markdown('## Final Image')
         output_container.image(deprocess_image(img.data.cpu()), caption='Final Image')
-        
-        # fig, ax = plt.subplots()
-        # ax.axis('off')
-        # ax.imshow(deprocess_image(img.data.cpu()))
-        # st.pyplot(fig)
-        # st.download_button('Download Final Image', deprocess_image(img.data.cpu()))
         
         st.balloons()
         info_message.success(f'Finished! Total elapsed time: {round(time.time() - start_time, 2)}s')
@@ -479,13 +532,15 @@ def run_style_transfer(**args):
     - num_epochs: number of epochs to run
     - observe_intermediate_result_count: number of epochs to observe intermediate results
     - color_mapping: color mapping to use for generated image
+    - layer_vis_choices: list of layer choices to display activation maps for
+    - channel_vis_choice: channel criterion to use for activation map display (see CHANNEL_BREAK_MAP)
     '''
 
     if args['content_img'] is None:
-        args['content_img'] = PIL.Image.open('assets/tubingen.jpg')
+        args['content_img'] = 'assets/input-imgs/tubingen.jpg'
     
     if args['style_img'] is None:
-        args['style_img'] = PIL.Image.open('assets/starry_night.jpg')
+        args['style_img'] = 'assets/input-imgs/starry_night.jpg'
 
     for key in args:
         if args[key] is None: 
@@ -495,12 +550,16 @@ def run_style_transfer(**args):
             return
 
     style_transfer(**args)
-    
+
 
 def main():
     """
     Main function
     """
+
+    # Available layers and channel visualization methods
+    available_layers = [i for i in range(len(CNN))]
+    available_vis_channel_methods = [key for key in CHANNEL_BREAK_MAP.keys()]
 
     # Page Config
     st.set_page_config(page_title='Style Transfer Vis', page_icon=':art:')
@@ -516,12 +575,87 @@ def main():
     descriptive_container.markdown('### Professor Bei Wang-Phillips -- University of Utah')
 
     descriptive_container.markdown('## How to Use This Software')
-    descriptive_container.markdown('**Note:** If you are using this software with our default images (`tubingen.jpg` and `starry_night.jpg` -- see below)), you can simply upload the images and run style transfer with the default parameters, as the UI is set up by default for optimal handling of hyperparameters for these images.')
+    descriptive_container.markdown('''
+        **Note:** If you are using this software with our default images (`tubingen.jpg` and `starry_night.jpg` -- see below)), you can simply 
+        upload the images and run style transfer with the default parameters, as the UI is set up by default for optimal handling of hyperparameters 
+        for these images.
+    ''')
+
     descriptive_container.markdown('### Step 1: Upload a Content and Style Image')
-    descriptive_container.markdown('You can upload any content and style image you\'d like. Keep in mind that the content image is the "destination" image and the style image is the "source" image.')
-    descriptive_container.markdown('### Step 2: Choose Hyperparameters')
+    descriptive_container.markdown('''
+        You can upload any content and style image (**in JPG format**) you\'d like. Keep in mind that the content image is the "destination" image 
+        and the style image is the "source" image.
+    ''')
+
+    descriptive_container.markdown('### Step 2: Choose Image Sizes')
+    descriptive_container.markdown('''
+        The image size is the smallest dimension of the image. For example, if you want to use the image `tubingen.jpg` as the content image,
+        you can choose the image size to be the smallest dimension of the image (e.g. `192`). This will ensure that the content loss is minimized. 
+        If you choose a larger image size, the style transfer will take longer to run, but the resulting image will be more detailed.
+    ''')
+
+    descriptive_container.markdown('### Step 3: Select Style Layers and Weights')
+    descriptive_container.markdown('''
+        Specify a list of which layers to use for style loss. Each layer corresponds to the respective feature as in the summary [here](#squeezenet-feature-summary).
+        Each layer is assigned an inputted weight, which is used to calculate the style loss for the respective layer. We generally use higher weights for 
+        the earlier style layers because they describe more local/smaller scale features, which are more important to texture than features over larger 
+        receptive fields. In general, increasing these weights will make the resulting image look less like the original content and more distorted towards 
+        the appearance of the style image.
+    ''')
+
+    descriptive_container.markdown('### Step 4: Select Content Layer')
+    descriptive_container.markdown('''
+        Specify a layer you want to use for content loss. Each layer corresponds to the respective feature as in the summary [here](#squeezenet-feature-summary).
+        The layer is assigned an inputted weight, which is used to calculate the content loss for the respective layer. Increasing the value of this parameter 
+        will make the final image look more realistic (closer to the original content).
+    ''')
+
+    descriptive_container.markdown('### Step 5: Select Number of Epochs')
+    descriptive_container.markdown('Select the number of epochs you want to run style transfer for. Higher epoch counts will take longer to run, but the resulting image will be more detailed.')
+
+    descriptive_container.markdown('### Step 6: Select Total Variation Weight')
+    descriptive_container.markdown('''
+        Specify the total variation regularization weight in the overall loss function. Increasing this value makes the resulting image look smoother and less jagged, 
+        at the cost of lower fidelity to style and content.
+    ''')
+
+    descriptive_container.markdown('### Step 7: Select Learning Rate Hyperparameters')
+    descriptive_container.markdown('''
+        Specify learning rate hyperparameters for the optimizer. They are defined as such:
+        - `initial_lr`: The learning rate for the optimizer
+        - `decay_lr_at`: The epoch # at which to decay the learning rate to `decayed_lr` (by default, this is 90 percent of the total epoch count specified)
+        - `decayed_lr`: The decayed learning rate for the optimizer (after `decay_lr_at` epochs)
+    ''')
+
+    descriptive_container.markdown('### Step 8: Select Observing Intermediate Results')
+    descriptive_container.markdown('''
+        Specify details of observing intermediate results. This workbench supports the following specifications:
+        - *Epoch Frequency for Observing Intermediate Results.* This defines how often the workbench will output intermediate resultant images and activation maps.
+        - *Intermediate Layers to Visualize.* This defines which layers to visualize for each intermediate result.
+        - *Channel Criterion for Activation Maps.* This defines which channels to visualize for each layer. This workbench supports the following specifications for channel criteria:
+            - `first_16`: Visualize the first 16 channels of the layer
+            - `last_16`: Visualize the last 16 channels of the layer
+            - `first_32`: Visualize the first 32 channels of the layer
+            - `last_32`: Visualize the last 32 channels of the layer
+            - `every_other`: Visualize every other channel of the layer
+            - `every_first`: Visualize every first (alternating) channel of the layer
+            - `every_eighth`: Visualize every 8th channel of the layer
+            - `every_sixteenth`: Visualize every 16th channel of the layer
+        - *Color Mapping.* This defines how to color the activation maps. This workbench supports the following specifications for color mappings:
+            - `nipy_spectral`: Spectral Color Mapping
+            - `jet`: Jet Color Mapping
+            - `gray`: Grayscale Color Mapping
+            - `rainbow`: Rainbow Color Mapping
+        - *Random Initialization.* This defines whether to use random noise or the content image as an initial image.
+    ''')
+
+    descriptive_container.markdown('### Step 9: Run Style Transfer')
+    descriptive_container.markdown('''
+        From here, you can run style transfer! The output as you have specified it will be written to the content display of this workbench.
+    ''')
 
     descriptive_container.markdown('## Project Introduction')
+    
     descriptive_container.markdown('### Background and Motivation')
     descriptive_container.markdown('''
         - Artificial Neural Networks are increasingly prevalent in analytic solutions for many industries
@@ -529,6 +663,7 @@ def main():
         - Visual interpretation of their operation constitutes a big step in this direction
         - The “style transfer” use case for convolutional neural nets (CNNs) is visually compelling and germane for manufacturing defect inspection applications
     ''')
+
     descriptive_container.markdown('### Convolutional Neural Net (CNN) Basics')
     descriptive_container.markdown('''
         Convolutional neural nets consists of some `n` layers, where each layer is one of the following types:
@@ -541,18 +676,21 @@ def main():
         `softmax` represents the final layer, which captures the highest-level detail for that layer. `max pooling` layers "compress" the image, increasing
         the number of channels while decreasing the resolution of the image (thus transitioning to higher-level details).
     ''')
-    descriptive_container.image('./assets/cnn-basics.png', caption='Basics of a CNN')
+    descriptive_container.image('./assets/descriptive-imgs/other/cnn-basics.png', caption='Basics of a CNN')
     descriptive_container.markdown('The below image shows intermediate activation maps of VGG-16, a neural net trained for image recognition, which shows a similar low-to-high level of feature extraction from lower to higher layers (ending with a linearly separable classifier).')
-    descriptive_container.image('./assets/vgg-16.png', caption='VGG-16 Intermediate Activation Maps')
+    descriptive_container.image('./assets/descriptive-imgs/other/vgg-16.png', caption='VGG-16 Intermediate Activation Maps')
+
     descriptive_container.markdown('### Style Transfer Use Case')
     descriptive_container.markdown('''
         Below we see the behavior and use case of style transfer. Style Transfer is a technique for transferring style from one image to another.
         For instance, with a neural net trained for style transferral, we can transpose the style of *Starry Night* by Van Gogh to a picture of
-        architecture in Tubingen, Germany. SqueezeNet is one such neural net trained for style transferral, and it consists of 13 layers, where some
-        modules utilize a unique "Fire" architecture. These "Fire" modules consist of a "squeeze" layer with 1x1 filters feeding an "expand" layer with 1x1
-        and 3x3 filters, thus achieving [AlexNet](https://en.wikipedia.org/wiki/AlexNet)-level accuracy on [ImageNet](https://image-net.org/) with 50x fewer parameters.
+        architecture in Tubingen, Germany. [SqueezeNet](https://arxiv.org/abs/1602.07360) is one such neural net trained for style transferral, and it consists of 13 layers, where some
+        modules utilize a unique "Fire" architecture, whereby "Fire" modules consist of a "squeeze" layer with 1x1 filters feeding an "expand" layer with 1x1
+        and 3x3 filters. This architecture achieves [AlexNet](https://en.wikipedia.org/wiki/AlexNet)-level accuracy on [ImageNet](https://image-net.org/) with 50x fewer parameters.
         The structure is defined below:
     ''')
+
+    descriptive_container.markdown('### SqueezeNet Feature Summary')
     descriptive_container.code('''
     Sequential(
         (0): Conv2d(3, 64, kernel_size=(3, 3), stride=(2, 2))
@@ -629,7 +767,8 @@ def main():
     descriptive_container.markdown('''
         Fire modules are illustrated in better detail below:
     ''')
-    descriptive_container.image('./assets/fire.png', caption='An Illustration of a Fire Module')
+    descriptive_container.image('./assets/descriptive-imgs/other/fire.png', caption='An Illustration of a Fire Module')
+
     descriptive_container.markdown('## Feature Visualization')
     descriptive_container.markdown('''
         - SqueezeNet has 13 different layers and each layer generates an output of a different number of channels (multiple of 16)
@@ -642,29 +781,112 @@ def main():
         To test intermediate visualization, we used the following content and style image:
     ''')
 
-    col1, col2 = descriptive_container.columns(2)
+    col1, col2 = st.columns(2)
 
     with col1:
-        descriptive_container.image('./assets/tubingen.jpg', caption='A picture of architecture Tubingen, Germany, used as the content image')
+        descriptive_container.image('./assets/input-imgs/tubingen.jpg', caption='A picture of architecture Tubingen, Germany, used as the content image')
     with col2:
-        descriptive_container.image('./assets/starry_night.jpg', caption='A picture of Starry Night by Van Gogh, used as the style image')
+        descriptive_container.image('./assets/input-imgs/starry_night.jpg', caption='A picture of Starry Night by Van Gogh, used as the style image')
 
     descriptive_container.markdown('''
         With these input images, we are able to utilize this playground interface to generate intermediate composite images *and* intermediate activation maps of SqueezeNet as ran on them.
-        Below are some of our results.
+        We used the following parameters to generate the intermediate composite images and activation maps:
     ''')
+
+    descriptive_container.code('''
+    {
+        'content_img': './assets/input-imgs/tubingen.jpg',
+        'style_img': './assets/input-imgs/starry_night.jpg',
+        'content_size': 192,
+        'style_size': 192,
+        'style_layers': [1, 4, 6, 7],
+        'content_layer': 3,
+        'style_weights': [300000, 1000, 15, 3],
+        'content_weight': 0.06,
+        'tv_weight': 0.02,
+        'num_epochs': 200,
+        'init_random': False,
+        'observe_intermediate_result_count': 5,
+        'decay_lr_at': 180,
+        'decayed_lr': 0.1,
+        'initial_lr': 3.0,
+        'layer_vis_choices': [i for i in range(available_layers)],
+        'channel_vis_choice': 'first_16',
+        'color_mapping': 'nipy_spectral'
+    }
+    ''', language='python')
+
+    descriptive_container.markdown('Using these hyperparameters, intermediate composite images and activation maps for epochs 0, 100, and 195 (layers 0, 6, and 12 for activation maps) are shown below:')
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        descriptive_container.image('./assets/descriptive-imgs/composite-imgs/image_epoch0.jpeg', caption='An Intermediate Composite Image at Epoch 0')
+    with col2:
+        descriptive_container.image('./assets/descriptive-imgs/composite-imgs/image_epoch100.jpeg', caption='An Intermediate Composite Image at Epoch 100')
+    with col3:
+        descriptive_container.image('./assets/descriptive-imgs/composite-imgs/image_epoch195.jpeg', caption='An Intermediate Composite Image at Epoch 195')
+    
+    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer0.png', caption='An Intermediate Activation Map at Epoch 0, Layer 0')
+    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer6.png', caption='An Intermediate Activation Map at Epoch 0, Layer 6')
+    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer12.png', caption='An Intermediate Activation Map at Epoch 0, Layer 12')
+
+    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer0.png', caption='An Intermediate Activation Map at Epoch 100, Layer 0')
+    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer6.png', caption='An Intermediate Activation Map at Epoch 100, Layer 6')
+    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer12.png', caption='An Intermediate Activation Map at Epoch 100, Layer 12')
+
+    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch195/activation_maps_epoch195_layer0.png', caption='An Intermediate Activation Map at Epoch 195, Layer 0')
+    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch195/activation_maps_epoch195_layer6.png', caption='An Intermediate Activation Map at Epoch 195, Layer 6')
+    descriptive_container.image('./assets/descriptive-imgs/activation-maps/epoch195/activation_maps_epoch195_layer12.png', caption='An Intermediate Activation Map at Epoch 195, Layer 12')
+
+    descriptive_container.markdown('The final image is shown below.')
+
+    descriptive_container.image('./assets/descriptive-imgs/composite-imgs/final_img.jpeg', caption='The Final Composite Image')
+
+    descriptive_container.markdown('## Try it out!')
+    descriptive_container.markdown('''
+        To try out this playground, you can input your own images and hyperparameters using the sidebar on the left, or you can simply click the button below to use
+        the default images and hyperparameters as defined below:
+        - Content Image: Tubingen, Germany (`'tubingen.jpg'`)
+        - Style Image: Starry Night by Van Gogh (`'starry_night.jpg'`)
+        - Content Image Size: 192
+        - Style Image Size: 192
+        - Style Layers: [1, 4, 6, 7](#squeezenet-feature-summary)
+        - Style Weights: 300000, 1000, 15, 3
+        - Content Layer: [3](#squeezenet-feature-summary)
+        - Content Weight: 0.06
+        - Total Variation Weight: 0.02
+        - Number of Epochs: 10
+        - Initialize to Random Noise: False
+        - Frequency of Observation of Intermediate Result Count: 2
+        - Decay Learning Rate At: 9
+        - Decayed Learning Rate: 0.10
+        - Initial Learning Rate: 3.0
+        - Layer Visualization Choices: All Layers
+        - Channel Visualization Choices: First 16
+        - Colormap: Spectral
+    ''')
+
+    descriptive_container.button(
+        'Run Playground with Default Images and Hyperparameters', 
+        on_click=lambda: style_transfer, 
+        kwargs={
+            'content_img': './assets/input-imgs/tubingen.jpg',
+            'style_img': './assets/input-imgs/starry_night.jpg'
+        }
+    )
 
     # Sidebar
     st.sidebar.title('Hyperparameter Selection')
-    available_layers = [i for i in range(1, len(CNN) + 1)]
 
     # Sidebar -- Upload Images
     st.sidebar.markdown('## Upload Images')
+    st.sidebar.markdown('If you don\'t upload an image, the input images displayed on the dashboard (`tubingen.jpg` and `starry_night.jpg`) will be used.')
     content_img = st.sidebar.file_uploader('Choose a Content Image', type=['jpg'], help='Only JPG images are supported')
     style_img = st.sidebar.file_uploader('Choose a Style Image', type=['jpg'], help='Only JPG images are supported')
 
     # Display Input Images
-    col1, col2 = initial_imgs_container.columns(2)
+    col1, col2 = st.columns(2)
 
     initial_imgs_container.markdown('## Input Images')
 
@@ -673,14 +895,14 @@ def main():
             initial_imgs_container.image(content_img, caption='Content Image', use_column_width=True)
     else:
         with col1:
-            initial_imgs_container.image('./assets/tubingen.jpg', caption='Content Image', use_column_width=True)
+            initial_imgs_container.image('./assets/input-imgs/tubingen.jpg', caption='Content Image', use_column_width=True)
 
     if style_img is not None:
         with col2:
             initial_imgs_container.image(style_img, caption='Style Image', use_column_width=True)
     else:
         with col2:
-            initial_imgs_container.image('./assets/starry_night.jpg', caption='Style Image', use_column_width=True)
+            initial_imgs_container.image('./assets/input-imgs/starry_night.jpg', caption='Style Image', use_column_width=True)
 
     # Sidebar -- Upload Image Sizes
     st.sidebar.markdown('## Input Image Sizes')
@@ -715,6 +937,8 @@ def main():
 
     # Sidebar -- Intermediate Vis
     st.sidebar.markdown('## Intermediate Visualization')
+    layer_vis_choices = st.sidebar.multiselect('Intermediate Layers to Visualize', available_layers, format_func=lambda x: f'Feature {x}', default=[i for i in available_layers])
+    channel_vis_choice = st.sidebar.selectbox('Channels to Visualize', available_vis_channel_methods, format_func=lambda x: ' '.join([word.capitalize() for word in re.findall('(\w+)_(\w+)', x)]), index=0)
     observe_intermediate_result_count = st.sidebar.number_input('Epoch Frequency for Observing Intermediate Results', min_value=1, max_value=20, value=5)
     color_mapping = st.sidebar.selectbox('Color Mapping', ['nipy_spectral', 'jet', 'gray', 'rainbow'], index=0)
     init_random = st.sidebar.checkbox('Random Initialization', value=False)
@@ -735,6 +959,8 @@ def main():
         'decay_lr_at': decay_lr_at,
         'decayed_lr': decayed_lr,
         'initial_lr': initial_lr,
+        'layer_vis_choices': layer_vis_choices,
+        'channel_vis_choice': channel_vis_choice,
         'color_mapping': color_mapping
     }
 
