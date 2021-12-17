@@ -316,6 +316,15 @@ def tv_loss(img, tv_weight):
 
 
 def download_all_figs_button(figs, epoch, activation_container):
+    '''
+    For a set of download activation maps, creates a zip file in the root
+    directory of the server and a download button for that zip file
+
+    Args:
+    - figs: A list of MPL figures to write to the zip
+    - epoch: The current testing epoch of the model
+    - activation_container: The output container for the download button
+    '''
     zip_file_name = f'figs_for_epoch_{epoch}.zip'
     with zipfile.ZipFile(zip_file_name, 'w') as myzip:
         for i, fig in enumerate(figs):
@@ -333,6 +342,11 @@ def download_all_figs_button(figs, epoch, activation_container):
 
 
 def remove_all_previous_figs():
+    '''
+    Removes all previous figures in the top-level directory of the server. Meant for basic
+    cleaning of state upon rerunning the playground.
+    '''
+
     def get_files():
         fig_filepaths = []
         paths = glob.glob('figs_for_epoch_*.zip')
@@ -401,7 +415,7 @@ def layer_vis(
         figs.append(fig)
         plt.close()
 
-    download_all_figs_button(figs, num_epoch, activation_container)
+    # download_all_figs_button(figs, num_epoch, activation_container)
 
 
 def style_transfer(
