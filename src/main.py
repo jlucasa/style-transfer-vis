@@ -320,8 +320,14 @@ def download_all_figs_button(figs, epoch, activation_container):
             fig.savefig(f'activation_maps_epoch{epoch}_layer{i}.png')
             myzip.write(f'activation_maps_epoch{epoch}_layer{i}.png')
             os.remove(f'activation_maps_epoch{epoch}_layer{i}.png')
-
-    activation_container.download_button('Download activation maps', zip_file_name, mime='application/zip')
+            
+    with open(zip_file_name, 'rb') as zip_file:
+        activation_container.download_button(
+            'Download activation maps', 
+            zip_file,
+            file_name=zip_file_name, 
+            mime='application/zip'
+        )
 
 
 def layer_vis(
