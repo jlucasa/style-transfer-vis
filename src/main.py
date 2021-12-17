@@ -57,33 +57,33 @@ CHANNEL_BREAK_MAP = {
     'first_16': {
         'func': lambda i, num_channels: i == 16,
         'should_continue': False,
-        'num_rows': 2
+        'num_rows': lambda num_channels: 2
     },
     'last_16': {
         'func': lambda i, num_channels: i < num_channels - 16,
         'should_continue': True,
-        'num_rows': 2
+        'num_rows': lambda num_channels: 2
     },
     'first_32': {
         'func': lambda i, num_channels: i == 32,
         'should_continue': False,
-        'num_rows': 4
+        'num_rows': lambda num_channels: 4
     },
     'last_32': {
         'func': lambda i, num_channels: i < num_channels - 32,
         'should_continue': True,
-        'num_rows': 4
+        'num_rows': lambda num_channels: 4
     },
-    'every_other': {
-        'func': lambda i, num_channels: i % 2 == 0,
-        'should_continue': True,
-        'num_rows': lambda num_channels: max(num_channels // 8, 1)
-    },
-    'every_first': {
-        'func': lambda i, num_channels: i % 2 == 1,
-        'should_continue': True,
-        'num_rows': lambda num_channels: max(num_channels // 8, 1)
-    },
+    # 'every_other': {
+    #     'func': lambda i, num_channels: i % 2 == 0,
+    #     'should_continue': True,
+    #     'num_rows': lambda num_channels: max(num_channels // 8, 1)
+    # },
+    # 'every_first': {
+    #     'func': lambda i, num_channels: i % 2 == 1,
+    #     'should_continue': True,
+    #     'num_rows': lambda num_channels: max(num_channels // 8, 1)
+    # },
     'every_eighth': {
         'func': lambda i, num_channels: i % 8 == 0,
         'should_continue': True,
@@ -388,7 +388,7 @@ def layer_vis(
 
     for num_layer in feats_choices:
         num_channels = len(feats[num_layer][0, :])
-        fig, axes = plt.subplots(num_rows, 8, figsize=(50, 10))
+        fig, axes = plt.subplots(num_rows(num_channels), 8, figsize=(50, 10))
         fig.suptitle(f'Activation Maps for Layer {num_layer}', fontsize=36)
 
         layer_vis = feats[num_layer][0, :, :, :].data.cpu()
@@ -698,8 +698,6 @@ def main():
             - `last_16`: Visualize the last 16 channels of the layer
             - `first_32`: Visualize the first 32 channels of the layer
             - `last_32`: Visualize the last 32 channels of the layer
-            - `every_other`: Visualize every other channel of the layer
-            - `every_first`: Visualize every first (alternating) channel of the layer
             - `every_eighth`: Visualize every 8th channel of the layer
             - `every_sixteenth`: Visualize every 16th channel of the layer
         - *Color Mapping.* This defines how to color the activation maps. This workbench supports the following specifications for color mappings:
@@ -713,8 +711,7 @@ def main():
     descriptive_container.markdown('### Step 9: Run Style Transfer')
     descriptive_container.markdown('''
         From here, you can run style transfer! The output as you have specified it will be written to the content display of this workbench.
-        You can download individual outputs by right-clicking on the image and saving it, or download groups of activation maps by clicking the
-        "Download Activation Maps" button at the bottom of each expandable activation map output.
+        You can download individual outputs by right-clicking on the image and saving it.
     ''')
 
     descriptive_container.markdown('## Project Introduction')
