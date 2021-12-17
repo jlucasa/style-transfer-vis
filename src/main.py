@@ -535,9 +535,9 @@ def main():
         `softmax` represents the final layer, which captures the highest-level detail for that layer. `max pooling` layers "compress" the image, increasing
         the number of channels while decreasing the resolution of the image (thus transitioning to higher-level details).
     ''')
-    # descriptive_container.image('./assets/cnn-basics.png', caption='Basics of a CNN')
+    descriptive_container.image('./assets/cnn-basics.png', caption='Basics of a CNN')
     descriptive_container.markdown('The below image shows intermediate activation maps of VGG-16, a neural net trained for image recognition, which shows a similar low-to-high level of feature extraction from lower to higher layers (ending with a linearly separable classifier).')
-    # descriptive_container.image('./assets/vgg-16.png', caption='VGG-16 Intermediate Activation Maps')
+    descriptive_container.image('./assets/vgg-16.png', caption='VGG-16 Intermediate Activation Maps')
     descriptive_container.markdown('### Style Transfer Use Case')
     descriptive_container.markdown('''
         Below we see the behavior and use case of style transfer. Style Transfer is a technique for transferring style from one image to another.
@@ -623,7 +623,7 @@ def main():
     descriptive_container.markdown('''
         Fire modules are illustrated in better detail below:
     ''')
-    # descriptive_container.image('./fire.png', caption='An Illustration of a Fire Module')
+    descriptive_container.image('./assets/fire.png', caption='An Illustration of a Fire Module')
     descriptive_container.markdown('## Feature Visualization')
     descriptive_container.markdown('''
         - SqueezeNet has 13 different layers and each layer generates an output of a different number of channels (multiple of 16)
@@ -636,12 +636,12 @@ def main():
         To test intermediate visualization, we used the following content and style image:
     ''')
 
-    # col1, col2 = descriptive_container.columns(2)
+    col1, col2 = descriptive_container.columns(2)
 
-    # with col1:
-    #     descriptive_container.image('./tubingen.jpg', caption='A picture of architecture Tubingen, Germany, used as the content image')
-    # with col2:
-    #     descriptive_container.image('./starry_night.jpg', caption='A picture of Starry Night by Van Gogh, used as the style image')
+    with col1:
+        descriptive_container.image('./assets/tubingen.jpg', caption='A picture of architecture Tubingen, Germany, used as the content image')
+    with col2:
+        descriptive_container.image('./assets/starry_night.jpg', caption='A picture of Starry Night by Van Gogh, used as the style image')
 
     descriptive_container.markdown('''
         With these input images, we are able to utilize this playground interface to generate intermediate composite images *and* intermediate activation maps of SqueezeNet as ran on them.
