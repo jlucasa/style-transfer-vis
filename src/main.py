@@ -939,7 +939,7 @@ def main():
     # Sidebar -- Intermediate Vis
     st.sidebar.markdown('## Intermediate Visualization')
     layer_vis_choices = st.sidebar.multiselect('Intermediate Layers to Visualize', available_layers, format_func=lambda x: f'Feature {x}', default=[i for i in available_layers])
-    channel_vis_choice = st.sidebar.selectbox('Channels to Visualize', available_vis_channel_methods, format_func=lambda x: ' '.join([word.capitalize() for word in re.findall('(\w+)_(\w+)', x)]), index=0)
+    channel_vis_choice = st.sidebar.selectbox('Channels to Visualize', available_vis_channel_methods, index=0)
     observe_intermediate_result_count = st.sidebar.number_input('Epoch Frequency for Observing Intermediate Results', min_value=1, max_value=20, value=5)
     color_mapping = st.sidebar.selectbox('Color Mapping', ['nipy_spectral', 'jet', 'gray', 'rainbow'], index=0)
     init_random = st.sidebar.checkbox('Random Initialization', value=False)
