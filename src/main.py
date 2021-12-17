@@ -348,13 +348,18 @@ def layer_vis(feats, num_epoch, output_container, feats_choices, channel_break_c
         
         for i, filter in enumerate(layer_vis):
             if channel_break_condition(i):
+                print('channel break condition passes')
                 if should_continue_on_channels:
                     continue
                 else:
                     break
 
             if col % 8 == 0:
+                print('col divisible by 8')
                 row += 1
+            
+            print(f'row={row}')
+            print(f'col={col}')
             
             axes[row, col % 8].axis('off')
             axes[row, col % 8].imshow(filter, cmap=color_mapping)
