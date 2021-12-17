@@ -408,7 +408,8 @@ def layer_vis(
 
             print(f'row={row}')
             print(f'col={col}')
-            
+            print(f'\ni={i}')
+
             axes[row, col % 8].axis('off')
             axes[row, col % 8].imshow(filter, cmap=color_mapping)
             axes[row, col % 8].title.set_text(f'Channel {i}')
