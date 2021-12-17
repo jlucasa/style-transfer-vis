@@ -92,7 +92,7 @@ CHANNEL_BREAK_MAP = {
         'func': lambda i, num_channels: i % 8 != 0,
         'should_continue': True,
         'num_rows': -64,
-        'num_cols': lambda num_channels: 8 if num_channels > 64 else 4
+        'num_cols': lambda num_channels: 8
     },
     'every_sixteenth': {
         'func': lambda i, num_channels: i % 16 != 0,
@@ -411,12 +411,12 @@ def layer_vis(
                 else:
                     break
 
-            if col % 8 == 0 and col != 0:
+            if col % num_cols(num_channels) == 0 and col != 0:
                 row += 1
 
-            axes[row, col % 8].axis('off')
-            axes[row, col % 8].imshow(filter, cmap=color_mapping)
-            axes[row, col % 8].title.set_text(f'Channel {i}')
+            axes[row, col % num_cols(num_channels)].axis('off')
+            axes[row, col % num_cols(num_channels)].imshow(filter, cmap=color_mapping)
+            axes[row, col % num_cols(num_channels)].title.set_text(f'Channel {i}')
 
             col += 1
 
