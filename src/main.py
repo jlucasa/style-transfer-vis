@@ -647,8 +647,7 @@ def main():
     st.markdown('## How to Use This Workbench')
     st.markdown('''
         **Note:** If you are using this software with our default images (`tubingen.jpg` and `starry_night.jpg` -- see below)), you can simply 
-        upload the images and run style transfer with the default parameters, as the UI is set up by default for optimal handling of hyperparameters 
-        for these images.
+        run style transfer with the default parameters, as the UI is set up by default for optimal handling of hyperparameters and these images.
     ''')
 
     st.markdown('### Step 1: Upload a Content and Style Image')
@@ -697,9 +696,9 @@ def main():
         - `decayed_lr`: The decayed learning rate for the optimizer (after `decay_lr_at` epochs)
     ''')
 
-    st.markdown('### Step 8: Select Observing Intermediate Results')
+    st.markdown('### Step 8: Modify Output Frequency and Structure of Intermediate Results')
     st.markdown('''
-        Specify details of observing intermediate results. This workbench supports the following specifications:
+        Specify details related to output frequency and structure of intermediate results. This workbench supports the following specifications:
         - *Epoch Frequency for Observing Intermediate Results.* This defines how often the workbench will output intermediate resultant images and activation maps.
         - *Intermediate Layers to Visualize.* This defines which layers to visualize for each intermediate result.
         - *Channel Criterion for Activation Maps.* This defines which channels to visualize for each layer. This workbench supports the following specifications for channel criteria:
@@ -950,15 +949,27 @@ Sequential(
         }
     )
 
-    st.sidebar.title('Table of Contents')
+    with st.sidebar.expander('Table of Contents'):
+        st.sidebar.markdown('''
+            - [How to Use this Workbench](#how-to-use-this-workbench)
+                1. [Upload a Content and Style Image](#step-1-upload-a-content-and-style-image)
+                2. [Choose Image Sizes](#step-2-choose-image-sizes)
+                3. [Select Style Layers and Weights](#step-3-select-style-layers-and-weights)
+                4. [Select Content Layer](#step-4-select-content-layer)
+                5. [Select Number of Epochs](#step-5-select-number-of-epochs)
+                6. [Select Total Variation Weight](#step-6-select-total-variation-weight)
+                7. [Select Learning Rate Hyperparameters](#step-7-select-learning-rate-hyperparameters)
+                8. [Modify Output Frequency and Structure of Intermediate Results](#step-8-modify-output-frequency-and-structure-of-intermediate-results)
+                9. [Run Style Transfer](#step-9-run-style-transfer) 
+            - [Project Introduction](#project-introduction)
+                - [Background and Motivation](#background-and-motivation)
+                - [Convolutional Neural Net (CNN) Basics](#convolutional-neural-net-cnn-basics)
+                - [Style Transfer Use Case](#style-transfer-use-case)
+                - [SqueezeNet Feature Summary](#squeezenet-feature-summary)
+            - [Feature Visualization](#feature-visualization)
+            - [Try it Out!](#try-it-out)
+        ''')
 
-    st.sidebar.markdown('''
-    - [How to Use this Workbench](#how-to-use-this-workbench)
-        - []
-    - [Project Introduction](#project-introduction)
-    - [Feature Visualization](#feature-visualization)
-    - [Try it Out!](#try-it-out)
-    ''')
     # Sidebar
     st.sidebar.title('Hyperparameter Selection')
 
