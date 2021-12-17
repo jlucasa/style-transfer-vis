@@ -348,9 +348,11 @@ def style_transfer(
 
     import time
 
+    output_container = st.container()
+    exception_message = output_container.empty()
+
     try:
         start_time = time.time()
-        output_container = st.container()
 
         content_img_as_tensor = preprocess_image(PIL.Image.open(content_img), size=content_size).type(DTYPE)
         feats = extract_features(content_img_as_tensor)
@@ -383,7 +385,6 @@ def style_transfer(
 
         output_container.markdown('## Image Outputs')
         progress_bar = output_container.progress(0.0)
-        exception_message = output_container.empty()
         info_message = output_container.info('Starting style transfer...')
         output_container.markdown('### Intermediate Images')
         img_container = output_container.expander('Outputs')
@@ -465,8 +466,8 @@ def run_style_transfer(**args):
     This function should only be called from the UI
 
     Inputs:
-    - content_image: filename of content image
-    - style_image: filename of style image
+    - content_img: filename of content image
+    - style_img: filename of style image
     - image_size: size of smallest image dimension (used for content loss and generated image)
     - style_size: size of smallest style image dimension
     - content_layer: layer to use for content loss
