@@ -398,6 +398,7 @@ def layer_vis(
             
             axes[row, col % 8].axis('off')
             axes[row, col % 8].imshow(filter, cmap=color_mapping)
+            axes[row, col % 8].set(xlabel=f'Channel {i}')
 
             col += 1
 
@@ -703,6 +704,8 @@ def main():
     descriptive_container.markdown('### Step 9: Run Style Transfer')
     descriptive_container.markdown('''
         From here, you can run style transfer! The output as you have specified it will be written to the content display of this workbench.
+        You can download individual outputs by right-clicking on the image and saving it, or download groups of activation maps by clicking the
+        "Download Activation Maps" button at the bottom of each expandable activation map output.
     ''')
 
     descriptive_container.markdown('## Project Introduction')
