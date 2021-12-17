@@ -32,6 +32,8 @@ import matplotlib.pyplot as plt
 import re
 import zipfile
 import os
+import glob
+import time
 import datetime
 
 # Supplementary constants for image/tensor conversion
@@ -320,7 +322,7 @@ def download_all_figs_button(figs, epoch, activation_container):
             fig.savefig(f'activation_maps_epoch{epoch}_layer{i}.png')
             myzip.write(f'activation_maps_epoch{epoch}_layer{i}.png')
             os.remove(f'activation_maps_epoch{epoch}_layer{i}.png')
-            
+
     with open(zip_file_name, 'rb') as zip_file:
         activation_container.download_button(
             'Download activation maps', 
@@ -328,6 +330,20 @@ def download_all_figs_button(figs, epoch, activation_container):
             file_name=zip_file_name, 
             mime='application/zip'
         )
+
+
+def remove_all_previous_figs():
+    def get_files():
+        fig_filepaths = []
+        paths = glob.glob('figs_for_epoch_*.zip')
+        fig_filepaths += paths
+
+        return fig_filepaths
+    
+    fig_filepaths = get_files()
+
+    for filepath in fig_filepaths:
+        os.remove(filepath)
 
 
 def layer_vis(
@@ -432,8 +448,6 @@ def style_transfer(
     - layer_vis_choices: list of layer choices to display activation maps for
     - channel_vis_choice: channel criterion to use for activation map display (see CHANNEL_BREAK_MAP) 
     '''
-
-    import time
 
     output_container = st.container()
     exception_message = output_container.empty()
@@ -1012,5 +1026,7 @@ def main():
 if __name__ == "__main__":
     for param in CNN.parameters():
         param.requires_grad_(False)
+
+    remove_all_previous_figs()
 
     main()
