@@ -316,10 +316,10 @@ def tv_loss(img, tv_weight):
 def download_all_figs_button(figs, epoch, activation_container):
     zip_file_name = f'figs_for_epoch_{epoch}.zip'
     with zipfile.ZipFile(zip_file_name, 'w') as myzip:
-        for fig in figs:
-            fig.savefig(f'fig_{epoch}.png')
-            myzip.write(f'fig_{epoch}.png')
-            os.remove(f'fig_{epoch}.png')
+        for i, fig in enumerate(figs):
+            fig.savefig(f'activation_maps_epoch{epoch}_layer{i}.png')
+            myzip.write(f'activation_maps_epoch{epoch}_layer{i}.png')
+            os.remove(f'activation_maps_epoch{epoch}_layer{i}.png')
 
     activation_container.download_button('Download activation maps', zip_file_name, mime='application/zip')
 
