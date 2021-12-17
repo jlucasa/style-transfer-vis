@@ -85,12 +85,12 @@ CHANNEL_BREAK_MAP = {
     #     'num_rows': lambda num_channels: max(num_channels // 8, 1)
     # },
     'every_eighth': {
-        'func': lambda i, num_channels: i % 8 == 0,
+        'func': lambda i, num_channels: i % 8 != 0,
         'should_continue': True,
         'num_rows': -64
     },
     'every_sixteenth': {
-        'func': lambda i, num_channels: i % 16 == 0,
+        'func': lambda i, num_channels: i % 16 != 0,
         'should_continue': True,
         'num_rows': -128
     }
