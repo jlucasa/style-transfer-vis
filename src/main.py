@@ -57,22 +57,22 @@ CHANNEL_BREAK_MAP = {
     'first_16': {
         'func': lambda i, num_channels: i == 16,
         'should_continue': False,
-        'num_rows': lambda num_channels: 2
+        'num_rows': 2
     },
     'last_16': {
         'func': lambda i, num_channels: i < num_channels - 16,
         'should_continue': True,
-        'num_rows': lambda num_channels: 2
+        'num_rows': 2
     },
     'first_32': {
         'func': lambda i, num_channels: i == 32,
         'should_continue': False,
-        'num_rows': lambda num_channels: 4
+        'num_rows': 4
     },
     'last_32': {
         'func': lambda i, num_channels: i < num_channels - 32,
         'should_continue': True,
-        'num_rows': lambda num_channels: 4
+        'num_rows': 4
     },
     # 'every_other': {
     #     'func': lambda i, num_channels: i % 2 == 0,
@@ -87,12 +87,12 @@ CHANNEL_BREAK_MAP = {
     'every_eighth': {
         'func': lambda i, num_channels: i % 8 == 0,
         'should_continue': True,
-        'num_rows': lambda num_channels: max(num_channels // 64, 1)
+        'num_rows': -64
     },
     'every_sixteenth': {
         'func': lambda i, num_channels: i % 16 == 0,
         'should_continue': True,
-        'num_rows': lambda num_channels: max(num_channels // 128, 1)
+        'num_rows': -128
     }
 }
 
@@ -388,7 +388,8 @@ def layer_vis(
 
     for num_layer in feats_choices:
         num_channels = len(feats[num_layer][0, :])
-        fig, axes = plt.subplots(num_rows(num_channels), 8, figsize=(50, 10))
+
+        fig, axes = plt.subplots(num_rows if num_rows > 0 else max(num_channels // -num_rows, 1), 8, figsize=(50, 10))
         fig.suptitle(f'Activation Maps for Layer {num_layer}', fontsize=36)
 
         layer_vis = feats[num_layer][0, :, :, :].data.cpu()
