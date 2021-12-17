@@ -54,35 +54,43 @@ WEIGHTS_MAP = {
 CHANNEL_BREAK_MAP = {
     'first_16': {
         'func': lambda i: i == 16,
-        'should_continue': False
+        'should_continue': False,
+        'num_rows': 2
     },
     'last_16': {
         'func': lambda i, channel_length: i == channel_length - 16,
-        'should_continue': False
+        'should_continue': False,
+        'num_rows': 2
     },
     'first_32': {
         'func': lambda i: i == 32,
-        'should_continue': False
+        'should_continue': False,
+        'num_rows': 4
     },
     'last_32': {
         'func': lambda i, channel_length: i == channel_length - 32,
-        'should_continue': False
+        'should_continue': False,
+        'num_rows': 4
     },
     'every_other': {
         'func': lambda i: i % 2 == 0,
-        'should_continue': True
+        'should_continue': True,
+        'num_rows': lambda num_channels: max(num_channels // 8, 1)
     },
     'every_first': {
         'func': lambda i: i % 2 == 1,
-        'should_continue': True
+        'should_continue': True,
+        'num_rows': lambda num_channels: max(num_channels // 8, 1)
     },
     'every_eighth': {
         'func': lambda i: i % 8 == 0,
-        'should_continue': True
+        'should_continue': True,
+        'num_rows': lambda num_channels: max(num_channels // 64, 1)
     },
     'every_sixteenth': {
         'func': lambda i: i % 16 == 0,
-        'should_continue': True
+        'should_continue': True,
+        'num_rows': lambda num_channels: max(num_channels // 128, 1)
     }
 }
 
@@ -316,7 +324,7 @@ def download_all_figs_button(figs, epoch, activation_container):
     activation_container.download_button('Download activation maps', zip_file_name, mime='application/zip')
 
 
-def layer_vis(feats, num_epoch, output_container, feats_choices, channel_break_condition, should_continue_on_channels, color_mapping):
+def layer_vis(feats, num_epoch, output_container, feats_choices, channel_break_condition, should_continue_on_channels, num_rows, color_mapping):
     '''
     Visualize intermediate layers using Matplotlib. By default,
     visualizes the first 16 channels of each layer.
@@ -331,11 +339,12 @@ def layer_vis(feats, num_epoch, output_container, feats_choices, channel_break_c
     figs = []
 
     for num_layer in feats_choices:
-        fig, axes = plt.subplots(int(len(feats[num_layer][0, :]) / 8), 8, figsize=(50, 10))
+        fig, axes = plt.subplots(num_rows, 8, figsize=(50, 10))
         fig.suptitle(f'Activation Maps for Layer {num_layer}', fontsize=36)
 
         layer_vis = feats[num_layer][0, :, :, :].data.cpu()
         row = 0
+        col = 0
         
         for i, filter in enumerate(layer_vis):
             if channel_break_condition(i):
@@ -344,11 +353,13 @@ def layer_vis(feats, num_epoch, output_container, feats_choices, channel_break_c
                 else:
                     break
 
-            if i % 8 == 0:
+            if col % 8 == 0:
                 row += 1
             
-            axes[row, i % 8].axis('off')
-            axes[row, i % 8].imshow(filter, cmap=color_mapping)
+            axes[row, col % 8].axis('off')
+            axes[row, col % 8].imshow(filter, cmap=color_mapping)
+
+            col += 1
 
         activation_container.pyplot(fig)
         figs.append(fig)
@@ -497,7 +508,8 @@ def style_transfer(
                     output_container,
                     layer_vis_choices, 
                     CHANNEL_BREAK_MAP[channel_vis_choice]['func'], 
-                    CHANNEL_BREAK_MAP[channel_vis_choice]['should_continue'], 
+                    CHANNEL_BREAK_MAP[channel_vis_choice]['should_continue'],
+                    CHANNEL_BREAK_MAP[channel_vis_choice]['num_rows'], 
                     color_mapping
                 )
                 # st.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
