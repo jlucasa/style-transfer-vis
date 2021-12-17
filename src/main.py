@@ -388,8 +388,12 @@ def layer_vis(
 
     for num_layer in feats_choices:
         num_channels = len(feats[num_layer][0, :])
+        num_rows_to_use = num_rows
 
-        fig, axes = plt.subplots(num_rows if num_rows > 0 else max((num_channels // -num_rows, 1)), 8, figsize=(50, 10))
+        if num_rows < 0:
+            num_rows_to_use = max(num_channels // -num_rows, 1)
+
+        fig, axes = plt.subplots(num_rows_to_use, 8, figsize=(50, 10))
         fig.suptitle(f'Activation Maps for Layer {num_layer}', fontsize=36)
 
         layer_vis = feats[num_layer][0, :, :, :].data.cpu()
