@@ -1007,14 +1007,14 @@ Sequential(
 
     # Sidebar -- Select Style Layers/Weights to Use
     st.sidebar.markdown('## Style Layers')
-    style_layers = st.sidebar.multiselect('Style Layers (no more than 4 recommended)', available_layers, format_func=lambda x: f'Feature {x}', default=[1, 4, 6, 7], help='The features that SqueezeNet will optimize style loss for. No more than four are recommended here in order to preserve details of the content image. Each feature maps to the corresponding layer in the SqueezeNet Feature Summary on this workbench (see Table of Contents).')
+    style_layers = st.sidebar.multiselect('Style Layers (no more than 4 recommended)', available_layers, format_func=lambda x: f'Feature {x}', default=[1, 4, 6, 7], help='The features that SqueezeNet will optimize style loss for. No more than four are recommended here in order to preserve details of the content image. Each feature corresponds to the features listed [here](#squeezenet-feature-summary).')
     style_weights = [
         st.sidebar.number_input(f'Style Layer {i} Weight', min_value=1, max_value=500000, value=WEIGHTS_MAP[i] if i in WEIGHTS_MAP else 100, help=f'The weight of feature {i}. Using heavier weights for earlier layers will bring forward local/smaller-scale features, whereas using heavier weights for later layers will bring forward larger-scale features.') for i in style_layers
     ]
 
     # Sidebar -- Select Content Layer/Weight to Use
     st.sidebar.markdown('## Content Layer')
-    content_layer = st.sidebar.selectbox('Content Layer', available_layers, format_func=lambda x: f'Feature {x}', index=2, help='The feature that SqueezeNet will optimize content loss for. Each feature maps to the corresponding layer in the SqueezeNet Feature Summary on this workbench (see Table of Contents).')
+    content_layer = st.sidebar.selectbox('Content Layer', available_layers, format_func=lambda x: f'Feature {x}', index=2, help='The feature that SqueezeNet will optimize content loss for. Each feature corresponds to the feature summary [here](#squeezenet-feature-summary).')
     content_weight = st.sidebar.number_input('Content Layer Weight', min_value=1e-3, max_value=1.0, value=6e-2, help='The weight of the content loss feature. Increasing the value of this parameter will make the final image look more realistic (closer to the original content image).')
 
     # Sidebar -- Number of Epochs
@@ -1033,10 +1033,10 @@ Sequential(
 
     # Sidebar -- Intermediate Vis
     st.sidebar.markdown('## Intermediate Visualization')
-    layer_vis_choices = st.sidebar.multiselect('Intermediate Layers to Visualize', available_layers, format_func=lambda x: f'Feature {x}', default=[i for i in available_layers], help='The features that will be outputted upon reaching an epoch where features should be outputted. See the SqueezeNet Feature Summary on this workbench for more details about what each feature represents.')
+    layer_vis_choices = st.sidebar.multiselect('Intermediate Layers to Visualize', available_layers, format_func=lambda x: f'Feature {x}', default=[i for i in available_layers], help='The features that will be outputted upon reaching an epoch where features should be outputted. See the [SqueezeNet Feature Summary](#squeezenet-feature-summary) on this workbench for more details about what each feature represents.')
     channel_vis_choice = st.sidebar.selectbox('Channels to Visualize', available_vis_channel_methods, index=0, help='Orders for which channels will be outputted. Channels of all features are in multiples of 16.')
     observe_intermediate_result_count = st.sidebar.number_input('Epoch Frequency for Observing Intermediate Results', min_value=1, max_value=20, value=10, help='The frequency at which intermediate composite images and activation maps will be outputted. Lower frequencies will result in a longer runtime of the overall style transfer process.')
-    color_mapping = st.sidebar.selectbox('Color Mapping', ['nipy_spectral', 'jet', 'gray', 'rainbow'], index=0, help='The color mapping used for output of activation maps. See the documentation on matplotlib\'s color mapping values for more information.')
+    color_mapping = st.sidebar.selectbox('Color Mapping', ['nipy_spectral', 'jet', 'gray', 'rainbow'], index=0, help='The color mapping used for output of activation maps. See the [documentation](https://matplotlib.org/stable/gallery/color/colormap_reference.html) on matplotlib\'s color mapping values for more information.')
     init_random = st.sidebar.checkbox('Random Initialization', value=False, help='Whether the content image should be initialized to noise upon first running SqueezeNet.')
 
     args = {
