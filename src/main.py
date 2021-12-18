@@ -949,10 +949,44 @@ Sequential(
         }
     )
 
+    st.markdown('## References')
+    st.markdown('''
+        The developers of this workbench would like to thank the following sources for their contributions to our work:
+        - University of Utah CS 6955: Deep Learning, Prof Berton Earnshaw for the original implementation of Neural Style Transfer using SqueezeNet as described here
+        - Brijesh Thumar, [How to Visualize Convolutional Neural Networks Using PyTorch](https://androidkt.com/how-to-visualize-feature-maps-in-convolutional-neural-networks-using-pytorch/)
+        - Distill Publication, [Activation Atlas](https://distill.pub/2019/activation-atlas/)
+        - Zan Armstrong, Chris Olah, [Building Blocks of Machine Learning Interpretability](https://distill.pub/2018/building-blocks/#ActivationGridSingle)
+        - Zan Armstrong, Chris Olah, [Interactivity of Machine Learning Interpretability](https://distill.pub/2017/feature-visualization/#interaction)
+        - Google, [TensorBoard](https://www.tensorflow.org/tensorboard)
+        - Google, [Teachable Machine](https://teachablemachine.withgoogle.com/)
+    ''')
+
+    st.markdown('## Software Used')
+    st.markdown('''
+        The following software was used to create this workbench:
+        - **Packages:** [Streamlit](https://streamlit.io/) (UI and Web Application), [Numpy](https://numpy.org/) (vector math), [Matplotlib](https://matplotlib.org/) (visualization)
+        - **Deep Learning Framework:** [PyTorch](https://pytorch.org/)
+        - **Neural Network:** [SqueezeNet](https://arxiv.org/abs/1602.07360) (trained on the [ImageNet](https://image-net.org/) dataset)
+        - **Implementation:** Google Colab Pro
+    ''')
+
+    st.markdown('## Final Report')
+    st.markdown('''
+        You can download our final report for this project by pressing the button below.
+    ''')
+
+    with open('https://drive.google.com/file/d/18m9uOouOrSyBkLE7PscklSQCvo6_Zf8R/view?usp=sharing', 'r') as file:
+        st.download_button(
+            'Download Final Report',
+            data=file,
+            file_name='WeberAmenRajanFinalProjectFinalReport.pdf',
+            mime='application/pdf'
+        )
+
     # Sidebar
     st.sidebar.title('Style Transfer Neural Network Workbench')
 
-    toc_expander = st.sidebar.beta_expander('Table of Contents')
+    toc_expander = st.sidebar.expander('Table of Contents')
     toc_expander.markdown('''
         - [How to Use this Workbench](#how-to-use-this-workbench)
             1. [Upload a Content and Style Image](#step-1-upload-a-content-and-style-image)
@@ -971,6 +1005,9 @@ Sequential(
             - [SqueezeNet Feature Summary](#squeezenet-feature-summary)
         - [Feature Visualization](#feature-visualization)
         - [Try it Out!](#try-it-out)
+        - [References](#references)
+        - [Software Used](#software-used)
+        - [Final Report](#final-report)
     ''')
 
     st.sidebar.title('Hyperparameter Selection')
