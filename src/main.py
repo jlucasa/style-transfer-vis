@@ -35,6 +35,7 @@ import os
 import glob
 import time
 import datetime
+import requests
 
 # Supplementary constants for image/tensor conversion
 SQUEEZENET_MEAN = np.array([0.485, 0.456, 0.406])
@@ -975,7 +976,10 @@ Sequential(
         You can download our final report for this project by pressing the button below.
     ''')
 
-    with open('https://drive.google.com/file/d/18m9uOouOrSyBkLE7PscklSQCvo6_Zf8R/view?usp=sharing', 'r') as file:
+    url = 'https://drive.google.com/file/d/18m9uOouOrSyBkLE7PscklSQCvo6_Zf8R/view?usp=sharing'
+    request = requests.get(url, allow_redirects=True)
+
+    with open(request, 'rb') as file:
         st.download_button(
             'Download Final Report',
             data=file,
