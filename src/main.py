@@ -1002,42 +1002,42 @@ Sequential(
 
     # Sidebar -- Upload Image Sizes
     st.sidebar.markdown('## Input Image Sizes')
-    content_size = st.sidebar.number_input('Content Image Size', min_value=64, max_value=512, value=192)
-    style_size = st.sidebar.number_input('Style Image Size', min_value=64, max_value=512, value=192)
+    content_size = st.sidebar.number_input('Content Image Size', min_value=64, max_value=512, value=192, help='The smallest dimension of the content image. Larger dimensions for image size will result in style transfer taking longer to run, but generate a more detailed final image.')
+    style_size = st.sidebar.number_input('Style Image Size', min_value=64, max_value=512, value=192, help='The smallest dimension of the style image. Larger dimensions for image size will result in style transfer to run, but generate a more detailed final image.')
 
     # Sidebar -- Select Style Layers/Weights to Use
     st.sidebar.markdown('## Style Layers')
-    style_layers = st.sidebar.multiselect('Style Layers (no more than 4 recommended)', available_layers, format_func=lambda x: f'Feature {x}', default=[1, 4, 6, 7])
+    style_layers = st.sidebar.multiselect('Style Layers (no more than 4 recommended)', available_layers, format_func=lambda x: f'Feature {x}', default=[1, 4, 6, 7], help='The features that SqueezeNet will optimize style loss for. No more than four are recommended here in order to preserve details of the content image. Each feature maps to the corresponding layer in the SqueezeNet Feature Summary on this workbench (see Table of Contents).')
     style_weights = [
-        st.sidebar.number_input(f'Style Layer {i} Weight', min_value=1, max_value=500000, value=WEIGHTS_MAP[i] if i in WEIGHTS_MAP else 100) for i in style_layers
+        st.sidebar.number_input(f'Style Layer {i} Weight', min_value=1, max_value=500000, value=WEIGHTS_MAP[i] if i in WEIGHTS_MAP else 100, help=f'The weight of feature {i}. Using heavier weights for earlier layers will bring forward local/smaller-scale features, whereas using heavier weights for later layers will bring forward larger-scale features.') for i in style_layers
     ]
 
     # Sidebar -- Select Content Layer/Weight to Use
     st.sidebar.markdown('## Content Layer')
-    content_layer = st.sidebar.selectbox('Content Layer', available_layers, format_func=lambda x: f'Feature {x}', index=2)
-    content_weight = st.sidebar.number_input('Content Layer Weight', min_value=1e-3, max_value=1.0, value=6e-2)
+    content_layer = st.sidebar.selectbox('Content Layer', available_layers, format_func=lambda x: f'Feature {x}', index=2, help='The feature that SqueezeNet will optimize content loss for. Each feature maps to the corresponding layer in the SqueezeNet Feature Summary on this workbench (see Table of Contents).')
+    content_weight = st.sidebar.number_input('Content Layer Weight', min_value=1e-3, max_value=1.0, value=6e-2, help='The weight of the content loss feature. Increasing the value of this parameter will make the final image look more realistic (closer to the original content image).')
 
     # Sidebar -- Number of Epochs
     st.sidebar.markdown('## Number of Epochs')
-    num_epochs = st.sidebar.number_input('Number of Epochs', min_value=1, max_value=500, value=200)
+    num_epochs = st.sidebar.number_input('Number of Epochs', min_value=1, max_value=500, value=200, help='The number of epochs to run on the content and style images. Higher epoch counts will take longer to run, but the resulting image will be more detailed.')
 
     # Sidebar -- TV
     st.sidebar.markdown('## Total Variation')
-    tv_weight = st.sidebar.number_input('Total Variation Weight', min_value=1e-3, max_value=1.0, value=2e-2)
+    tv_weight = st.sidebar.number_input('Total Variation Weight', min_value=1e-3, max_value=1.0, value=2e-2, help='The total variation regularization weight in the overall loss function. Increasing this value makes the resulting image look smoother and less jagged, at the cost of lower fidelity to style and content.')
 
     # Sidebar -- Learning Rate
     st.sidebar.markdown('## Learning Rate Hyperparameters')
-    decay_lr_at = st.sidebar.number_input('Decay Learning Rate At', min_value=1, max_value=num_epochs, value=int(0.9 * num_epochs))
-    decayed_lr = st.sidebar.number_input('Decayed Learning Rate', min_value=0.1, max_value=1.0, value=0.1)
-    initial_lr = st.sidebar.number_input('Initial Learning Rate', min_value=1.0, max_value=5.0, value=3.0)
+    decay_lr_at = st.sidebar.number_input('Decay Learning Rate At', min_value=1, max_value=num_epochs, value=int(0.9 * num_epochs), help='The epoch number at which to decay the learning rate to `decayed_lr`.')
+    decayed_lr = st.sidebar.number_input('Decayed Learning Rate', min_value=0.1, max_value=1.0, value=0.1, help='The decayed learning rate for the optimizer')
+    initial_lr = st.sidebar.number_input('Initial Learning Rate', min_value=1.0, max_value=5.0, value=3.0, help='The learning rate for the optimizer')
 
     # Sidebar -- Intermediate Vis
     st.sidebar.markdown('## Intermediate Visualization')
-    layer_vis_choices = st.sidebar.multiselect('Intermediate Layers to Visualize', available_layers, format_func=lambda x: f'Feature {x}', default=[i for i in available_layers])
-    channel_vis_choice = st.sidebar.selectbox('Channels to Visualize', available_vis_channel_methods, index=0)
-    observe_intermediate_result_count = st.sidebar.number_input('Epoch Frequency for Observing Intermediate Results', min_value=1, max_value=20, value=5)
-    color_mapping = st.sidebar.selectbox('Color Mapping', ['nipy_spectral', 'jet', 'gray', 'rainbow'], index=0)
-    init_random = st.sidebar.checkbox('Random Initialization', value=False)
+    layer_vis_choices = st.sidebar.multiselect('Intermediate Layers to Visualize', available_layers, format_func=lambda x: f'Feature {x}', default=[i for i in available_layers], help='The features that will be outputted upon reaching an epoch where features should be outputted. See the SqueezeNet Feature Summary on this workbench for more details about what each feature represents.')
+    channel_vis_choice = st.sidebar.selectbox('Channels to Visualize', available_vis_channel_methods, index=0, help='Orders for which channels will be outputted. Channels of all features are in multiples of 16.')
+    observe_intermediate_result_count = st.sidebar.number_input('Epoch Frequency for Observing Intermediate Results', min_value=1, max_value=20, value=10, help='The frequency at which intermediate composite images and activation maps will be outputted. Lower frequencies will result in a longer runtime of the overall style transfer process.')
+    color_mapping = st.sidebar.selectbox('Color Mapping', ['nipy_spectral', 'jet', 'gray', 'rainbow'], index=0, help='The color mapping used for output of activation maps. See the documentation on matplotlib\'s color mapping values for more information.')
+    init_random = st.sidebar.checkbox('Random Initialization', value=False, help='Whether the content image should be initialized to noise upon first running SqueezeNet.')
 
     args = {
         'content_img': content_img,
