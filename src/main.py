@@ -949,8 +949,8 @@ Sequential(
         }
     )
 
-    with st.sidebar.beta_expander('Table of Contents'):
-        st.sidebar.markdown('''
+    with st.sidebar.beta_expander('Table of Contents') as expander:
+        expander.markdown('''
             - [How to Use this Workbench](#how-to-use-this-workbench)
                 1. [Upload a Content and Style Image](#step-1-upload-a-content-and-style-image)
                 2. [Choose Image Sizes](#step-2-choose-image-sizes)
