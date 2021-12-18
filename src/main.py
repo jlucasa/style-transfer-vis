@@ -29,13 +29,11 @@ import torchvision.transforms as T
 import PIL
 import numpy as np
 import matplotlib.pyplot as plt
-import re
 import zipfile
 import os
 import glob
 import time
 import datetime
-import requests
 
 # Supplementary constants for image/tensor conversion
 SQUEEZENET_MEAN = np.array([0.485, 0.456, 0.406])
@@ -973,19 +971,8 @@ Sequential(
 
     st.markdown('## Final Report')
     st.markdown('''
-        You can download our final report for this project by pressing the button below.
+        You can download our final report for this project by clicking [here](https://drive.google.com/file/d/18m9uOouOrSyBkLE7PscklSQCvo6_Zf8R/view?usp=sharing).
     ''')
-
-    url = 'https://drive.google.com/file/d/18m9uOouOrSyBkLE7PscklSQCvo6_Zf8R/view?usp=sharing'
-    request = requests.get(url, allow_redirects=True)
-
-    with open(request, 'rb') as file:
-        st.download_button(
-            'Download Final Report',
-            data=file,
-            file_name='WeberAmenRajanFinalProjectFinalReport.pdf',
-            mime='application/pdf'
-        )
 
     # Sidebar
     st.sidebar.title('Style Transfer Neural Network Workbench')
