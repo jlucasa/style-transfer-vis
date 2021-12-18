@@ -94,11 +94,11 @@ From here, you can run style transfer! The output as you have specified it will 
 
 Below is an image of an exemplary CNN.
 
-![Basics of a CNN](./assets/descriptive-imgs/other/cnn-basics.png)
+![Basics of a CNN](./src/assets/descriptive-imgs/other/cnn-basics.png)
 
 The below image shows intermediate activation maps of VGG-16, a neural net trained for image recognition, which shows a similar low-to-high level of feature extraction from lower to higher layers (ending with a linearly separable classifier).
 
-![VGG-16 Intermediate Activation Maps](./assets/descriptive-imgs/other/vgg-16.png)
+![VGG-16 Intermediate Activation Maps](./src/assets/descriptive-imgs/other/vgg-16.png)
 
 
 ### Style Transfer Use Case
@@ -187,7 +187,7 @@ Sequential(
 
 Fire modules are illustrated in better detail below:
 
-![An Illustration of a Fire Module](./assets/descriptive-imgs/other/fire.png)
+![An Illustration of a Fire Module](./src/assets/descriptive-imgs/other/fire.png)
 
 ## Feature Visualization
 
@@ -200,9 +200,9 @@ Fire modules are illustrated in better detail below:
 
 To test intermediate visualization, we used the following content and style image:
 
-![A picture of architecture Tubingen, Germany, used as the content image](./assets/input-imgs/tubingen.jpg)
+![A picture of architecture Tubingen, Germany, used as the content image](./src/assets/input-imgs/tubingen.jpg)
 
-![A picture of Starry Night by Van Gogh, used as the style image](./assets/input-imgs/starry_night.jpg)
+![A picture of Starry Night by Van Gogh, used as the style image](./src/assets/input-imgs/starry_night.jpg)
 
 
 With these input images, we are able to utilize this playground interface to generate intermediate composite images *and* intermediate activation maps of SqueezeNet as ran on them.
@@ -211,8 +211,8 @@ We used the following parameters to generate the intermediate composite images a
 
 ```
 {
-    'content_img': './assets/input-imgs/tubingen.jpg',
-    'style_img': './assets/input-imgs/starry_night.jpg',
+    'content_img': './src/assets/input-imgs/tubingen.jpg',
+    'style_img': './src/assets/input-imgs/starry_night.jpg',
     'content_size': 192,
     'style_size': 192,
     'style_layers': [1, 4, 6, 7],
@@ -236,39 +236,39 @@ Using these hyperparameters, intermediate composite images and activation maps f
 
 col1, col2, col3 = st.columns(3)
 
-![Intermediate Composite Image at Epoch 0](./assets/descriptive-imgs/composite-imgs/image_epoch0.jpeg)
+![Intermediate Composite Image at Epoch 0](./src/assets/descriptive-imgs/composite-imgs/image_epoch0.jpeg)
 
-![Intermediate Composite Image at Epoch 100](./assets/descriptive-imgs/composite-imgs/image_epoch100.jpeg)
+![Intermediate Composite Image at Epoch 100](./src/assets/descriptive-imgs/composite-imgs/image_epoch100.jpeg)
 
-![Intermediate Composite Image at Epoch 195](./assets/descriptive-imgs/composite-imgs/image_epoch195.jpeg)
+![Intermediate Composite Image at Epoch 195](./src/assets/descriptive-imgs/composite-imgs/image_epoch195.jpeg)
 
 **Activation Maps at Epoch 0:**
 
-![An Intermediate Activation Map at Epoch 0, Layer 0](./assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer0.png)
+![An Intermediate Activation Map at Epoch 0, Layer 0](./src/assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer0.png)
 
-![An Intermediate Activation Map at Epoch 0, Layer 6](./assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer6.png)
+![An Intermediate Activation Map at Epoch 0, Layer 6](./src/assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer6.png)
 
-![An Intermediate Activation Map at Epoch 0, Layer 12](./assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer12.png)
+![An Intermediate Activation Map at Epoch 0, Layer 12](./src/assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer12.png)
 
 **Activation Maps at Epoch 100:**
 
-![An Intermediate Activation Map at Epoch 100, Layer 0](./assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer0.png)
+![An Intermediate Activation Map at Epoch 100, Layer 0](./src/assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer0.png)
 
-![An Intermediate Activation Map at Epoch 100, Layer 6](./assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer6.png)
+![An Intermediate Activation Map at Epoch 100, Layer 6](./src/assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer6.png)
 
-![An Intermediate Activation Map at Epoch 100, Layer 12](./assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer12.png)
+![An Intermediate Activation Map at Epoch 100, Layer 12](./src/assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer12.png)
 
 **Activation Maps at Epoch 195:**
 
-![An Intermediate Activation Map at Epoch 195, Layer 0](./assets/descriptive-imgs/activation-maps/epoch195/activation_maps_epoch195_layer0.png)
+![An Intermediate Activation Map at Epoch 195, Layer 0](./src/assets/descriptive-imgs/activation-maps/epoch195/activation_maps_epoch195_layer0.png)
 
-![An Intermediate Activation Map at Epoch 195, Layer 6](./assets/descriptive-imgs/activation-maps/epoch195/activation_maps_epoch195_layer6.png)
+![An Intermediate Activation Map at Epoch 195, Layer 6](./src/assets/descriptive-imgs/activation-maps/epoch195/activation_maps_epoch195_layer6.png)
 
-![An Intermediate Activation Map at Epoch 195, Layer 12](./assets/descriptive-imgs/activation-maps/epoch195/activation_maps_epoch195_layer12.png)
+![An Intermediate Activation Map at Epoch 195, Layer 12](./src/assets/descriptive-imgs/activation-maps/epoch195/activation_maps_epoch195_layer12.png)
 
 The final image is shown below.
 
-![The Final Composite Image](./assets/descriptive-imgs/composite-imgs/final_img.jpeg)
+![The Final Composite Image](./src/assets/descriptive-imgs/composite-imgs/final_img.jpeg)
 
 ## References
 
