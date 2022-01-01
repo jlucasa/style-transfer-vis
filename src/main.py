@@ -577,6 +577,7 @@ def style_transfer(
         output_container.markdown('## Final Image')
         output_container.image(deprocess_image(img.data.cpu()), caption='Final Image')
         
+        progress_bar.progress(1.0)
         output_container.balloons()
         info_message.success(f'Finished! Total elapsed time: {datetime.timedelta(seconds=round(time.time() - start_time, 2))}')
     except Exception as e:
