@@ -427,8 +427,8 @@ def layer_vis(
 
 
 def style_transfer(
-    content_img: str or st.UploadedFile, 
-    style_img: str or st.UploadedFile, 
+    content_img='./assets/input_imgs/tubingen.jpg', 
+    style_img='./assets/input_imgs/starry_night.jpg', 
     content_size=192, 
     style_size=192,
     style_layers=[1, 4, 6, 7], 
@@ -514,7 +514,7 @@ def style_transfer(
         print(f'num epochs: {num_epochs}')
 
         for t in range(num_epochs):
-            progress_bar.progress((t + 1) / num_epochs)
+            progress_bar.progress(t / num_epochs)
 
             print('epoch: ', t)
             epoch_start_time = time.time()
@@ -571,12 +571,13 @@ def style_transfer(
                 )
                 # st.image(deprocess_image(img.data.cpu()), caption=f'Image at Epoch {t + 1}')
 
+
             info_message.info(f'Epoch {t} completed. Total elapsed time: {datetime.timedelta(seconds=round(time.time() - epoch_start_time, 2))}')
 
         output_container.markdown('## Final Image')
         output_container.image(deprocess_image(img.data.cpu()), caption='Final Image')
         
-        st.balloons()
+        output_container.balloons()
         info_message.success(f'Finished! Total elapsed time: {datetime.timedelta(seconds=round(time.time() - start_time, 2))}')
     except Exception as e:
         exception_message.exception(e)
@@ -899,7 +900,7 @@ Sequential(
     st.image('./assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer6.png', caption='An Intermediate Activation Map at Epoch 0, Layer 6')
     st.image('./assets/descriptive-imgs/activation-maps/epoch0/activation_maps_epoch0_layer12.png', caption='An Intermediate Activation Map at Epoch 0, Layer 12')
 
-    st.markdown('**Activation Maps at Epoch 100L**')
+    st.markdown('**Activation Maps at Epoch 100:**')
 
     st.image('./assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer0.png', caption='An Intermediate Activation Map at Epoch 100, Layer 0')
     st.image('./assets/descriptive-imgs/activation-maps/epoch100/activation_maps_epoch100_layer6.png', caption='An Intermediate Activation Map at Epoch 100, Layer 6')
@@ -941,11 +942,7 @@ Sequential(
 
     st.button(
         'Run Playground with Default Images and Hyperparameters', 
-        on_click=lambda: style_transfer, 
-        kwargs={
-            'content_img': './assets/input-imgs/tubingen.jpg',
-            'style_img': './assets/input-imgs/starry_night.jpg'
-        }
+        on_click=lambda: style_transfer
     )
 
     st.markdown('## References')
